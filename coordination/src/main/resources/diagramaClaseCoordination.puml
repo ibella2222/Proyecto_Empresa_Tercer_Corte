@@ -1,0 +1,218 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' #########################
+' #       ENUMERACIONES    #
+' #########################
+enum ProjectStateEnum {
+    RECEIVED
+    ACCEPTED
+    REJECTED
+    IN_EXECUTION
+    CLOSED
+}
+
+' #########################
+' #        ENTIDADES       #
+' #########################
+class Project {
+    - id: UUID
+    - name: String
+    - companyNit: String
+    - state: ProjectStateEnum
+    - summary: String
+    - objectives: String
+    - description: String
+    - maxMonths: int
+    - budget: BigDecimal
+    - startDate: LocalDate
+    + Project()
+    + Project(id, name, companyNit, summary, objectives, description, maxMonths, budget, startDate, state)
+    + getters/setters()
+}
+
+class Student {
+    - id: Long
+    - username: String
+    - firstName: String
+    - lastName: String
+    - program: String
+    - projectId: String
+    + Student()
+    + Student(id, username, firstName, lastName, program, projectId)
+    + getters/setters()
+}
+
+' #########################
+' #          DTOs         #
+' #########################
+class ProjectEvent {
+    - id: UUID
+    - name: String
+    - summary: String
+    - objectives: String
+    - description: String
+    - maxMonths: int
+    - budget: BigDecimal
+    - startDate: LocalDate
+    - companyNIT: String
+    - status: String
+    + ProjectEvent()
+    + getters/setters()
+}
+
+class StudentDTO {
+    - id: Long
+    - username: String
+    - firstName: String
+    - lastName: String
+    - program: String
+    - projectId: String
+    + StudentDTO()
+    + StudentDTO(id, username, firstName, lastName, program, projectId)
+    + getters/setters()
+    + toString(): String
+}
+
+' #########################
+' #      REPOSITORIOS     #
+' #########################
+interface ProjectRepository {
+    + deleteById(projectId: UUID): void
+    + findByCompanyNit(companyNit: String): List<Project>
+    + findByState(state: String): List<Project>
+    + findByNameContainingIgnoreCase(name: String): List<Project>
+}
+
+interface StudentRepository {
+    + findByProjectId(projectId: String): List<Student>
+}
+
+' #########################
+' #       SERVICIOS       #
+' #########################
+class ProjectService {
+    - projectRepository: ProjectRepository
+    - stateFactory: ProjectStateFactory
+    - eventPublisher: ProjectEventPublisher
+    + getAll(): List<Project>
+    + getById(id: UUID): Optional<Project>
+    + acceptProject(projectId: UUID): void
+    + rejectProject(projectId: UUID): void
+    + startExecution(projectId: UUID): void
+}
+
+class ProjectStateFactory {
+    - studentService: StudentService
+    + getState(stateEnum: ProjectStateEnum): ProjectState
+}
+
+class StudentService {
+    - studentRepository: StudentRepository
+    + getStudentsByProjectId(projectId: String): List<StudentDTO>
+    - convertToDTO(student: Student): StudentDTO
+}
+
+' #########################
+' #      ESTADOS (STATE)  #
+' #########################
+interface ProjectState {
+    + accept(project: Project): void
+    + reject(project: Project): void
+    + startExecution(project: Project): void
+}
+
+class ReceivedState {
+    + accept(project: Project): void
+    + reject(project: Project): void
+    + startExecution(project: Project): void
+}
+
+class AcceptedState {
+    - studentService: StudentService
+    + accept(project: Project): void
+    + reject(project: Project): void
+    + startExecution(project: Project): void
+}
+
+class RejectedState {
+    + accept(project: Project): void
+    + reject(project: Project): void
+    + startExecution(project: Project): void
+}
+
+class InExecutionState {
+    + accept(project: Project): void
+    + reject(project: Project): void
+    + startExecution(project: Project): void
+}
+
+' #########################
+' #        RABBITMQ       #
+' #########################
+class RabbitMQConfig {
+    + PROJECT_EVENT_EXCHANGE: String
+    + PROJECT_EVENTS_QUEUE: String
+    + PROJECT_EVENTS_CRISTOBAL_QUEUE: String
+    + PROJECT_EVENTS_ROUTING_KEY: String
+    + projectExchange(): TopicExchange
+    + projectEventsQueue(): Queue
+    + projectEventsBinding(): Binding
+    + projectEventsCristobalQueue(): Queue
+    + projectEventsCristobalBinding(): Binding
+    + studentQueue(): Queue
+}
+
+class ProjectEventPublisher {
+    - rabbitTemplate: RabbitTemplate
+    + sendProjectStateChange(projectId: UUID, projectName: String, summary: String, objectives: String, description: String, maxDurationMonths: int, budget: BigDecimal, startDate: LocalDate, companyNIT: String, newState: ProjectStateEnum): void
+}
+
+class ProjectEventListener {
+    - projectRepository: ProjectRepository
+    + handleProjectEvent(event: ProjectEvent): void
+}
+
+class StudentListener {
+    + receiveStudent(studentDTO: StudentDTO): void
+}
+
+' #########################
+' #      CONTROLADOR      #
+' #########################
+class ProjectController {
+    - projectRepository: ProjectRepository
+    - projectService: ProjectService
+    + approveProject(id: UUID): ResponseEntity<String>
+    + rejectProject(id: UUID): ResponseEntity<String>
+}
+
+' #########################
+' #       RELACIONES      #
+' #########################
+Project "1" *-- "1" ProjectStateEnum
+
+ProjectRepository "1" --* ProjectService
+StudentRepository "1" --* StudentService
+ProjectService "1" --> "1" ProjectStateFactory
+ProjectService "1" --> "1" ProjectEventPublisher
+ProjectStateFactory "1" --> "1" StudentService
+
+ProjectState <|-- ReceivedState
+ProjectState <|-- AcceptedState
+ProjectState <|-- RejectedState
+ProjectState <|-- InExecutionState
+
+ProjectEventPublisher ..> RabbitMQConfig
+ProjectEventListener ..> RabbitMQConfig
+StudentListener ..> RabbitMQConfig
+
+ProjectController --> ProjectService
+ProjectService --> ProjectRepository
+ProjectEventListener --> ProjectRepository
+ProjectEventPublisher --> ProjectEvent
+
+StudentService --> StudentRepository
+StudentListener --> StudentDTO
+
+@enduml

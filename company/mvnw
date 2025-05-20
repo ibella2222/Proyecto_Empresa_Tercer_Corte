@@ -1,0 +1,9 @@
+#!/bin/sh
+# Apache Maven Wrapper
+MVN_VERSION=3.8.6
+BASE_URL=https://repo.maven.apache.org/maven2
+WRAPPER_DIR="$(cd "$(dirname "$0")"; pwd)"
+MAVEN_DIR="$WRAPPER_DIR/.mvn/wrapper"
+JAR="$MAVEN_DIR/maven-wrapper.jar"
+JAVA_CMD="java"
+"$JAVA_CMD" -jar "$JAR" "$@"
