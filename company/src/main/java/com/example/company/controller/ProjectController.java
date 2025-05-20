@@ -20,7 +20,6 @@ public class ProjectController {
         this.service = service;
     }
 
-    // Retorna lista de ProjectDTOs para la GUI
     @GetMapping
     public List<ProjectDTO> list() {
         return service.listAll().stream()
@@ -53,14 +52,17 @@ public class ProjectController {
     private ProjectDTO convertToDTO(Project project) {
         ProjectDTO dto = new ProjectDTO();
         dto.setId(project.getId());
-        dto.setTitle(project.getTitle());
-        dto.setStatus(project.getStatus());
-        dto.setJustification(project.getJustification());
+        dto.setName(project.getName());
+        dto.setSummary(project.getSummary());
+        dto.setObjectives(project.getObjectives());
         dto.setDescription(project.getDescription());
-        dto.setCompanyNit(project.getCompanyNit());
-        dto.setCompanyName(project.getCompanyName() != null ? project.getCompanyName() : "Desconocida");
-        dto.setStartDate(project.getStartDate());
-        dto.setEndDate(project.getEndDate());
+        dto.setDate(project.getDate()); // LocalDate
+        dto.setFinalizationDate(project.getFinalizationDate()); // Date
+        dto.setState(project.getState());
+        dto.setCompanyNIT(project.getCompanyNIT());
+        dto.setJustification(project.getJustification());
+        dto.setBudget(project.getBudget());
+        dto.setMaxMonths(project.getMaxMonths());
         return dto;
     }
 }

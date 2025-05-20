@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -18,12 +20,18 @@ public class Project {
     @GeneratedValue
     private UUID id;
 
-    private String title;
+    private String name;
+    private String summary;
+    private String objectives;
     private String description;
-    private String startDate;
-    private String endDate;
-    private String status;
-    private String companyName;
-    private String companyNit;
+
+    private LocalDate date;
+    private Date finalizationDate;
+
+    private String state;
+    private String companyNIT;
     private String justification;
+    // Opcionalmente puedes mantener estos si los quieres usar
+    private float budget;
+    private int maxMonths;
 }

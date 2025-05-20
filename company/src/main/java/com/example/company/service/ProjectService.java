@@ -1,5 +1,4 @@
 package com.example.company.service;
-
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -27,14 +26,9 @@ public class ProjectService {
 
     public Project create(Project project) {
         // Validación de campos obligatorios
-        if (project.getTitle() == null || project.getDescription() == null ||
-                project.getStartDate() == null || project.getCompanyNit() == null) {
+        if (project.getName() == null || project.getDescription() == null ||
+                project.getDate() == null || project.getCompanyNIT() == null) {
             throw new IllegalArgumentException("Todos los campos obligatorios deben estar diligenciados.");
-        }
-
-        // Validar formato de fecha básica (ISO 8601: yyyy-MM-dd)
-        if (!project.getStartDate().matches("\\d{4}-\\d{2}-\\d{2}")) {
-            throw new IllegalArgumentException("El formato de la fecha debe ser YYYY-MM-DD.");
         }
 
         // Generar UUID automáticamente si no viene
@@ -42,13 +36,18 @@ public class ProjectService {
             project.setId(UUID.randomUUID());
         }
 
-        project.setStatus("RECEIVED");
+        // Estado inicial
+        project.setState("RECEIVED");
+
+        // Guardar en memoria
         db.put(project.getId(), project);
 
-        // Enviar mensaje a RabbitMQ
+        // Enviar a RabbitMQ
         rabbitTemplate.convertAndSend("company.exchange", "company.routingkey", project);
+
         return project;
     }
+
 
     public Project update(Project project) {
         Project existing = db.get(project.getId());
@@ -56,14 +55,14 @@ public class ProjectService {
             throw new IllegalArgumentException("El proyecto no existe.");
         }
 
-        if (!"RECEIVED".equals(existing.getStatus())) {
+        if (!"RECEIVED".equals(existing.getState())) {
             throw new IllegalStateException("Solo se pueden editar proyectos en estado RECEIVED.");
         }
 
         // Conservar el estado y el NIT si no vienen
-        project.setStatus(existing.getStatus());
-        if (project.getCompanyNit() == null) {
-            project.setCompanyNit(existing.getCompanyNit());
+        project.setState(existing.getState());
+        if (project.getCompanyNIT() == null) {
+            project.setCompanyNIT(existing.getCompanyNIT());
         }
 
         db.put(project.getId(), project);
@@ -73,7 +72,7 @@ public class ProjectService {
     public void updateProjectStatus(ProjectDTO dto) {
         Project project = db.get(dto.getId());
         if (project != null) {
-            project.setStatus(dto.getStatus());
+            project.setState(dto.getState());
             if (dto.getJustification() != null) {
                 project.setJustification(dto.getJustification());
             }
@@ -83,7 +82,7 @@ public class ProjectService {
     public boolean delete(UUID id) {
         Project project = db.get(id);
         if (project == null) return false;
-        if ("IN_EXECUTION".equals(project.getStatus())) {
+        if ("IN_EXECUTION".equals(project.getState())) {
             throw new IllegalStateException("No se puede eliminar un proyecto en ejecución.");
         }
         return db.remove(id) != null;
