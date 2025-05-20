@@ -1,9 +1,14 @@
 package com.example.company.service;
+
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.example.company.adapter.LocalDateAdapter;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -11,9 +16,13 @@ public class ProjectService {
 
     private final RabbitTemplate rabbitTemplate;
     private final Map<UUID, Project> db = new HashMap<>();
+    private final Gson gson;
 
     public ProjectService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter()) // para fechas
+                .create();
     }
 
     public List<Project> listAll() {
@@ -25,6 +34,12 @@ public class ProjectService {
     }
 
     public Project create(Project project) {
+
+        System.out.println("name: " + project.getName());
+        System.out.println("description: " + project.getDescription());
+        System.out.println("date: " + project.getDate());
+        System.out.println("companyNIT: " + project.getCompanyNIT());
+
         // Validación de campos obligatorios
         if (project.getName() == null || project.getDescription() == null ||
                 project.getDate() == null || project.getCompanyNIT() == null) {
@@ -42,12 +57,12 @@ public class ProjectService {
         // Guardar en memoria
         db.put(project.getId(), project);
 
-        // Enviar a RabbitMQ
-        rabbitTemplate.convertAndSend("company.exchange", "company.routingkey", project);
+        // Enviar como JSON por RabbitMQ
+        String json = gson.toJson(project);
+        rabbitTemplate.convertAndSend("company.exchange", "company.routingkey", json);
 
         return project;
     }
-
 
     public Project update(Project project) {
         Project existing = db.get(project.getId());

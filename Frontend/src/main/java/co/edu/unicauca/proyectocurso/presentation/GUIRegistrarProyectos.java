@@ -219,13 +219,14 @@ public GUIRegistrarProyectos(String nit) {
         int tiempoMaximo = (int) spnTiempoMaximo.getValue();
         int presupuesto = (int) spnPresupuesto.getValue();
         String fechaStr = txtFecha.getText();
+        String nit = txtNIT.getText().trim(); // ✅ Extrae el NIT directamente del campo visual
 
         try {
             LocalDate fecha = LocalDate.parse(fechaStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
             IProjectRepository repo = new co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl();
             ProjectService proyectoService = new ProjectService(repo);
-            boolean registrado = proyectoService.registerProject(nombre, resumen, objetivos, descripcion, tiempoMaximo, presupuesto, fecha, companyNIT);
+            boolean registrado = proyectoService.registerProject(nombre, resumen, objetivos, descripcion, tiempoMaximo, presupuesto, fecha, nit);
 
             if (registrado) {
                 JOptionPane.showMessageDialog(this, "Proyecto registrado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -237,6 +238,7 @@ public GUIRegistrarProyectos(String nit) {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Por favor, ingrese valores numéricos válidos para el presupuesto y el tiempo máximo.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+
 
     }//GEN-LAST:event_jButton1ActionPerformed
 

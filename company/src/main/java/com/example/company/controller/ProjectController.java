@@ -3,6 +3,7 @@ package com.example.company.controller;
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
 import com.example.company.service.ProjectService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class ProjectController {
         this.service = service;
     }
 
+    // Listar todos los proyectos como DTOs
     @GetMapping
     public List<ProjectDTO> list() {
         return service.listAll().stream()
@@ -27,28 +29,32 @@ public class ProjectController {
                 .collect(Collectors.toList());
     }
 
+    // Obtener un proyecto por ID
     @GetMapping("/{id}")
     public Optional<Project> get(@PathVariable UUID id) {
         return service.findById(id);
     }
 
+    // Crear un nuevo proyecto
     @PostMapping
-    public Project create(@RequestBody Project project) {
+    public Project create(@Valid @RequestBody Project project) {
         return service.create(project);
     }
 
+    // Actualizar un proyecto existente
     @PutMapping("/{id}")
-    public Project update(@PathVariable UUID id, @RequestBody Project project) {
+    public Project update(@PathVariable UUID id, @Valid @RequestBody Project project) {
         project.setId(id);
         return service.update(project);
     }
 
+    // Eliminar un proyecto
     @DeleteMapping("/{id}")
     public boolean delete(@PathVariable UUID id) {
         return service.delete(id);
     }
 
-    // Método auxiliar para convertir entidad a DTO
+    // Convertir una entidad Project a un DTO
     private ProjectDTO convertToDTO(Project project) {
         ProjectDTO dto = new ProjectDTO();
         dto.setId(project.getId());
@@ -56,8 +62,8 @@ public class ProjectController {
         dto.setSummary(project.getSummary());
         dto.setObjectives(project.getObjectives());
         dto.setDescription(project.getDescription());
-        dto.setDate(project.getDate()); // LocalDate
-        dto.setFinalizationDate(project.getFinalizationDate()); // Date
+        dto.setDate(project.getDate());
+        dto.setFinalizationDate(project.getFinalizationDate());
         dto.setState(project.getState());
         dto.setCompanyNIT(project.getCompanyNIT());
         dto.setJustification(project.getJustification());

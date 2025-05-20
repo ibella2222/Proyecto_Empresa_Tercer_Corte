@@ -43,11 +43,13 @@ public class ProjectRepositoryImpl implements IProjectRepository {
             .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
             .create();
 
-
     @Override
     public boolean save(Project project, String nitEmpresa) {
         try {
+            project.setCompanyNIT(nitEmpresa); // ✅ Setea el NIT dentro del objeto antes de enviarlo
             String jsonData = gson.toJson(project);
+            System.out.println("➡ JSON enviado al microservicio:");
+            System.out.println(jsonData);
             String response = sendPostRequest(BASE_URL, jsonData);
             return response != null && response.contains("registrado");
         } catch (Exception e) {

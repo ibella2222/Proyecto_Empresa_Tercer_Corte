@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Project {
+public class Project implements Serializable {
 
     @Id
     @GeneratedValue
@@ -26,12 +26,12 @@ public class Project {
     private String description;
 
     private LocalDate date;
-    private Date finalizationDate;
+    private LocalDate finalizationDate;
 
     private String state;
     private String companyNIT;
     private String justification;
-    // Opcionalmente puedes mantener estos si los quieres usar
+
     private float budget;
     private int maxMonths;
 }
