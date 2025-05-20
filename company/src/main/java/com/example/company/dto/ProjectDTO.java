@@ -1,68 +1,22 @@
 package com.example.company.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProjectDTO {
-    private String id;
-    private String name;
-    private String state;
-    private String justification;
+    private UUID id;
+    private String title;
     private String description;
-    private String companyNIT;
+    private String startDate;
+    private String endDate;
+    private String status;
     private String companyName;
-
-    // Getters y Setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getJustification() {
-        return justification;
-    }
-
-    public void setJustification(String justification) {
-        this.justification = justification;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCompanyNIT() {
-        return companyNIT;
-    }
-
-    public void setCompanyNIT(String companyNIT) {
-        this.companyNIT = companyNIT;
-    }
-
-    public String getCompanyName() {
-        return companyName;
-    }
-
-    public void setCompanyName(String companyName) {
-        this.companyName = companyName;
-    }
+    private String companyNit;
+    private String justification;
 }

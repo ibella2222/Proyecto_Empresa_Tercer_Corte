@@ -11,7 +11,7 @@ import java.util.*;
 public class ProjectService {
 
     private final RabbitTemplate rabbitTemplate;
-    private final Map<String, Project> db = new HashMap<>();
+    private final Map<UUID, Project> db = new HashMap<>();
 
     public ProjectService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
@@ -21,30 +21,31 @@ public class ProjectService {
         return new ArrayList<>(db.values());
     }
 
-    public Optional<Project> findById(String id) {
+    public Optional<Project> findById(UUID id) {
         return Optional.ofNullable(db.get(id));
     }
 
     public Project create(Project project) {
-        if (project.getName() == null || project.getSummary() == null ||
-                project.getDate() == null || project.getCompanyNIT() == null) {
+        // Validación de campos obligatorios
+        if (project.getTitle() == null || project.getDescription() == null ||
+                project.getStartDate() == null || project.getCompanyNit() == null) {
             throw new IllegalArgumentException("Todos los campos obligatorios deben estar diligenciados.");
         }
 
-        // Validar formato de fecha básico (ISO 8601: yyyy-MM-dd)
-        if (!project.getDate().matches("\\d{4}-\\d{2}-\\d{2}")) {
+        // Validar formato de fecha básica (ISO 8601: yyyy-MM-dd)
+        if (!project.getStartDate().matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new IllegalArgumentException("El formato de la fecha debe ser YYYY-MM-DD.");
         }
 
-        // Asignar UUID si no está presente
-        if (project.getId() == null || project.getId().isBlank()) {
-            project.setId(UUID.randomUUID().toString());
+        // Generar UUID automáticamente si no viene
+        if (project.getId() == null) {
+            project.setId(UUID.randomUUID());
         }
 
-        project.setState("RECEIVED");
+        project.setStatus("RECEIVED");
         db.put(project.getId(), project);
 
-        // Enviar a RabbitMQ
+        // Enviar mensaje a RabbitMQ
         rabbitTemplate.convertAndSend("company.exchange", "company.routingkey", project);
         return project;
     }
@@ -55,14 +56,14 @@ public class ProjectService {
             throw new IllegalArgumentException("El proyecto no existe.");
         }
 
-        if (!"RECEIVED".equals(existing.getState())) {
+        if (!"RECEIVED".equals(existing.getStatus())) {
             throw new IllegalStateException("Solo se pueden editar proyectos en estado RECEIVED.");
         }
 
-        // Mantener el estado y NIT si no fueron actualizados
-        project.setState(existing.getState());
-        if (project.getCompanyNIT() == null) {
-            project.setCompanyNIT(existing.getCompanyNIT());
+        // Conservar el estado y el NIT si no vienen
+        project.setStatus(existing.getStatus());
+        if (project.getCompanyNit() == null) {
+            project.setCompanyNit(existing.getCompanyNit());
         }
 
         db.put(project.getId(), project);
@@ -70,19 +71,19 @@ public class ProjectService {
     }
 
     public void updateProjectStatus(ProjectDTO dto) {
-        if (db.containsKey(dto.getId())) {
-            Project p = db.get(dto.getId());
-            p.setState(dto.getState());
+        Project project = db.get(dto.getId());
+        if (project != null) {
+            project.setStatus(dto.getStatus());
             if (dto.getJustification() != null) {
-                p.setJustification(dto.getJustification());
+                project.setJustification(dto.getJustification());
             }
         }
     }
 
-    public boolean delete(String id) {
+    public boolean delete(UUID id) {
         Project project = db.get(id);
         if (project == null) return false;
-        if ("IN_EXECUTION".equals(project.getState())) {
+        if ("IN_EXECUTION".equals(project.getStatus())) {
             throw new IllegalStateException("No se puede eliminar un proyecto en ejecución.");
         }
         return db.remove(id) != null;

@@ -22,7 +22,7 @@ public class CoordinatorListener {
             ObjectMapper mapper = new ObjectMapper();
             ProjectDTO dto = mapper.readValue(message, ProjectDTO.class);
             projectService.updateProjectStatus(dto);
-            System.out.println("📥 Estado actualizado desde coordinator: " + dto.getId() + " -> " + dto.getState());
+            System.out.println("📥 Estado actualizado desde coordinator: " + dto.getId() + " -> " + dto.getStatus());
         } catch (Exception e) {
             e.printStackTrace();
         }
