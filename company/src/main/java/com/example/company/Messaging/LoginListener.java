@@ -1,32 +1,31 @@
 package com.example.company.Messaging;
 import com.example.company.dto.CompanyDTO;
-import com.example.company.entity.Company;
-import com.example.company.repository.CompanyRepository;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LoginListener {
 
-    private final CompanyRepository companyRepository;
+    private final Gson gson = new GsonBuilder()
+            .setDateFormat("dd/MM/yyyy") //  Formato correcto de fechas
+            .create();
 
-    public LoginListener(CompanyRepository companyRepository) {
-        this.companyRepository = companyRepository;
+    // Ahora escucha la cola específica para login
+    @RabbitListener(queues = "company.login.queue")
+    public void receiveCompanyFromLogin(String message) {
+        System.out.println(" Mensaje JSON recibido desde RabbitMQ (LOGIN):");
+        System.out.println(message);
+
+        try {
+            CompanyDTO dto = gson.fromJson(message, CompanyDTO.class);
+            System.out.println("➡ NIT: " + dto.getNit());
+            // ...
+        } catch (Exception e) {
+            System.err.println(" Error al convertir JSON a CompanyDTO: " + e.getMessage());
+        }
     }
 
-    @RabbitListener(queues = "company.queue")
-    public void receiveCompanyFromLogin(CompanyDTO dto) {
-        Company company = new Company();
-        company.setNit(dto.getNit());
-        company.setName(dto.getName());
-        company.setSector(dto.getSector());
-        company.setContactFirstName(dto.getContactFirstName());
-        company.setContactLastName(dto.getContactLastName());
-        company.setContactPhone(dto.getContactPhone());
-        company.setContactPosition(dto.getContactPosition());
-
-        companyRepository.save(company);
-        System.out.println("Empresa registrada desde login: " + company.getName());
-    }
 }
+

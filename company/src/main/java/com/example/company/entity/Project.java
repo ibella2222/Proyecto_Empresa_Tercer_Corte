@@ -1,5 +1,6 @@
 package com.example.company.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Project implements Serializable {
-
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Id
     @GeneratedValue
     private UUID id;

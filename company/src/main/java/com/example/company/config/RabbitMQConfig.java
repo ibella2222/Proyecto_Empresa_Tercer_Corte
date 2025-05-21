@@ -1,5 +1,7 @@
 package com.example.company.config;
 
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,10 +9,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PROJECT_QUEUE = "project.events.queue";
-    public static final String TO_COMPANY_QUEUE = "coordinator.to.company.queue";
-    public static final String LOGIN_TO_COMPANY_QUEUE = "company.queue"; // Nueva cola para login
+    // Nombres de colas
+    public static final String PROJECT_QUEUE = "company.project.queue";
+    public static final String LOGIN_QUEUE = "company.login.queue";
+    public static final String COORDINATOR_TO_COMPANY_QUEUE = "coordinator.to.company.queue";
+
+    // Nombre del exchange
     public static final String EXCHANGE = "company.exchange";
+
+    // Claves de enrutamiento
+    public static final String PROJECT_ROUTING_KEY = "company.project.routingkey";
+    public static final String LOGIN_ROUTING_KEY = "company.login.routingkey";
+    public static final String COORDINATOR_ROUTING_KEY = "coordinator.company.routingkey";
+
+
 
     @Bean
     public DirectExchange exchange() {
@@ -23,27 +35,27 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue toCompanyQueue() {
-        return new Queue(TO_COMPANY_QUEUE, true);
+    public Queue loginQueue() {
+        return new Queue(LOGIN_QUEUE, true);
     }
 
     @Bean
-    public Queue loginToCompanyQueue() {
-        return new Queue(LOGIN_TO_COMPANY_QUEUE, true); // La cola que escucha el listener
+    public Queue coordinatorToCompanyQueue() {
+        return new Queue(COORDINATOR_TO_COMPANY_QUEUE, true);
     }
 
     @Bean
-    public Binding bindingProject(Queue projectQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(projectQueue).to(exchange).with("company.routingkey");
+    public Binding projectBinding(Queue projectQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(projectQueue).to(exchange).with(PROJECT_ROUTING_KEY);
     }
 
     @Bean
-    public Binding bindingToCompany(Queue toCompanyQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(toCompanyQueue).to(exchange).with("coordinator.company.routingkey");
+    public Binding loginBinding(Queue loginQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(loginQueue).to(exchange).with(LOGIN_ROUTING_KEY);
     }
 
     @Bean
-    public Binding bindingLoginToCompany(Queue loginToCompanyQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(loginToCompanyQueue).to(exchange).with("company.routingkey");
+    public Binding coordinatorBinding(Queue coordinatorToCompanyQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(coordinatorToCompanyQueue).to(exchange).with(COORDINATOR_ROUTING_KEY);
     }
 }

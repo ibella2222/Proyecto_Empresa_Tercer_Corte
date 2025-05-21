@@ -34,7 +34,6 @@ public class ProjectService {
     }
 
     public Project create(Project project) {
-
         System.out.println("name: " + project.getName());
         System.out.println("description: " + project.getDescription());
         System.out.println("date: " + project.getDate());
@@ -57,9 +56,9 @@ public class ProjectService {
         // Guardar en memoria
         db.put(project.getId(), project);
 
-        // Enviar como JSON por RabbitMQ
+        // Enviar como JSON por RabbitMQ a la cola de proyectos
         String json = gson.toJson(project);
-        rabbitTemplate.convertAndSend("company.exchange", "company.routingkey", json);
+        rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", json);
 
         return project;
     }
