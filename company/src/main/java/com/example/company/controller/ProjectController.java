@@ -49,10 +49,19 @@ public class ProjectController {
     }
 
     // Eliminar un proyecto
-    @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable UUID id) {
+    @PostMapping("/delete/{id}")
+    public boolean deleteViaPost(@PathVariable UUID id) {
         return service.delete(id);
     }
+
+    // Obtener todos los proyectos por NIT de empresa
+    @GetMapping("/company/{nit}")
+    public List<ProjectDTO> getProjectsByCompanyNIT(@PathVariable String nit) {
+        return service.findByCompanyNIT(nit).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
 
     // Convertir una entidad Project a un DTO
     private ProjectDTO convertToDTO(Project project) {

@@ -8,8 +8,9 @@ import lombok.Data;
 @Data
 public class Company {
     @Id
+    private int id;
+    private String username;
     private String nit;
-
     private String name;
     private String sector;
     private String contactFirstName;

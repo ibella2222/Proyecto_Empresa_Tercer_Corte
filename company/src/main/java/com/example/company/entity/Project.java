@@ -1,5 +1,6 @@
 package com.example.company.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Project implements Serializable {
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Id
     @GeneratedValue
@@ -26,7 +28,10 @@ public class Project implements Serializable {
     private String objectives;
     private String description;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate date;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate finalizationDate;
 
     private String state;

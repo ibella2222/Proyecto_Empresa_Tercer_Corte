@@ -2,12 +2,13 @@ package com.example.company.service;
 
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.example.company.adapter.LocalDateAdapter;
+import com.example.company.repository.ProjectRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.*;
 
@@ -16,13 +17,17 @@ public class ProjectService {
 
     private final RabbitTemplate rabbitTemplate;
     private final Map<UUID, Project> db = new HashMap<>();
-    private final Gson gson;
+    private final ProjectRepository repository;
+    private final ObjectMapper mapper;
 
-    public ProjectService(RabbitTemplate rabbitTemplate) {
+    public ProjectService(RabbitTemplate rabbitTemplate, ProjectRepository repository) {
         this.rabbitTemplate = rabbitTemplate;
-        this.gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter()) // para fechas
-                .create();
+        this.repository = repository;
+
+        this.mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     public List<Project> listAll() {
@@ -57,8 +62,12 @@ public class ProjectService {
         db.put(project.getId(), project);
 
         // Enviar como JSON por RabbitMQ a la cola de proyectos
-        String json = gson.toJson(project);
-        rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", json);
+        try {
+            String json = mapper.writeValueAsString(project);
+            rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", json);
+        } catch (Exception e) {
+            System.err.println("❌ Error al serializar el proyecto: " + e.getMessage());
+        }
 
         return project;
     }
@@ -100,5 +109,9 @@ public class ProjectService {
             throw new IllegalStateException("No se puede eliminar un proyecto en ejecución.");
         }
         return db.remove(id) != null;
+    }
+
+    public List<Project> findByCompanyNIT(String nit) {
+        return repository.findByCompanyNIT(nit);
     }
 }

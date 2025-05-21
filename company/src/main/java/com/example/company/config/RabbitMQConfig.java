@@ -1,8 +1,8 @@
 package com.example.company.config;
 
-import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,8 +21,6 @@ public class RabbitMQConfig {
     public static final String PROJECT_ROUTING_KEY = "company.project.routingkey";
     public static final String LOGIN_ROUTING_KEY = "company.login.routingkey";
     public static final String COORDINATOR_ROUTING_KEY = "coordinator.company.routingkey";
-
-
 
     @Bean
     public DirectExchange exchange() {
@@ -45,17 +43,22 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding projectBinding(Queue projectQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(projectQueue).to(exchange).with(PROJECT_ROUTING_KEY);
+    public Binding projectBinding() {
+        return BindingBuilder.bind(projectQueue()).to(exchange()).with(PROJECT_ROUTING_KEY);
     }
 
     @Bean
-    public Binding loginBinding(Queue loginQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(loginQueue).to(exchange).with(LOGIN_ROUTING_KEY);
+    public Binding loginBinding() {
+        return BindingBuilder.bind(loginQueue()).to(exchange()).with(LOGIN_ROUTING_KEY);
     }
 
     @Bean
-    public Binding coordinatorBinding(Queue coordinatorToCompanyQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(coordinatorToCompanyQueue).to(exchange).with(COORDINATOR_ROUTING_KEY);
+    public Binding coordinatorBinding() {
+        return BindingBuilder.bind(coordinatorToCompanyQueue()).to(exchange()).with(COORDINATOR_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 }
