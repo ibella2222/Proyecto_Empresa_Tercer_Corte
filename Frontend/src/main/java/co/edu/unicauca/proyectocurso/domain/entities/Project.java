@@ -12,7 +12,7 @@ public class Project {
     private UUID id;
     private String name;
     private String description;
-    private Date finalizationDate;
+    private LocalDate finalizationDate;
     private LocalDate date;
     private ProjectState state;
     private Company company;
@@ -33,7 +33,7 @@ public class Project {
         this.summary = summary; 
         this.description = (description != null) ? description : "Descripción no definida";
         this.date = LocalDate.now(); // Fecha de creación
-        this.finalizationDate = dueDate != null ? Date.from(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null; // Fecha de finalización
+        this.finalizationDate = dueDate;
         this.state = ProjectState.RECEIVED;
         this.comments = new ArrayList<>();
         this.students = new ArrayList<>();
@@ -121,7 +121,7 @@ public class Project {
         this.company = company;
     }
 
-    public List<String> getComments() {
+   public List<String> getComments() {
         return comments;
     }
 
@@ -145,11 +145,11 @@ public class Project {
         this.tasks = tasks;
     }
 
-    public Date getFinalizationDate() {
+    public LocalDate getFinalizationDate() {
         return finalizationDate;
     }
 
-    public void setFinalizationDate(Date FinalizationDate) {
+    public void setFinalizationDate(LocalDate FinalizationDate) {
         this.finalizationDate = FinalizationDate;
     }
 

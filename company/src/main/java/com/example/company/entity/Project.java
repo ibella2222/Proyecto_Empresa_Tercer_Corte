@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "projects")
 @Data
@@ -18,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Project implements Serializable {
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    
     @Id
     @GeneratedValue
     private UUID id;

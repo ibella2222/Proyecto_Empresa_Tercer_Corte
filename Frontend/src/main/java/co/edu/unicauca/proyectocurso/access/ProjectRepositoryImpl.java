@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+
 /**
  * Implementación del repositorio de proyectos usando llamadas HTTP al microservicio Company.
  */
@@ -47,6 +48,7 @@ public class ProjectRepositoryImpl implements IProjectRepository {
 
     @Override
     public boolean save(Project project, String nitEmpresa) {
+        
         try {
             project.setCompanyNIT(nitEmpresa); // ✅ Setea el NIT dentro del objeto antes de enviarlo
             String jsonData = gson.toJson(project);
