@@ -99,6 +99,12 @@ public GUIRegistrarProyectos(String nit) {
             }
         });
 
+        txtFecha.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtFechaActionPerformed(evt);
+            }
+        });
+
         jLabel11.setText("Nit");
 
         txtNIT.addActionListener(new java.awt.event.ActionListener() {
@@ -239,7 +245,6 @@ public GUIRegistrarProyectos(String nit) {
             JOptionPane.showMessageDialog(this, "Por favor, ingrese valores numéricos válidos para el presupuesto y el tiempo máximo.", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void txtResumenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtResumenActionPerformed
@@ -253,6 +258,10 @@ public GUIRegistrarProyectos(String nit) {
     private void txtNITActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNITActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNITActionPerformed
+
+    private void txtFechaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFechaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtFechaActionPerformed
 
     /**
      * @param args the command line arguments

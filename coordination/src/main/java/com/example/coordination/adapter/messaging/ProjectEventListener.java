@@ -19,7 +19,7 @@ public class ProjectEventListener {
         this.projectRepository = projectRepository;
     }
 
-    @RabbitListener(queues = "project.events.cristobal.queue")
+    @RabbitListener(queues = "company.project.queue")
     public void handleProjectEvent(ProjectEvent event) {
         System.out.println("Proyecto recibido desde el micro de empresa:");
         System.out.println("ID: " + event.getId());

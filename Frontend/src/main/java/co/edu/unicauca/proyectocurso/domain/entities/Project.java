@@ -12,7 +12,7 @@ public class Project {
     private UUID id;
     private String name;
     private String description;
-    private Date FinalizationDate;
+    private Date finalizationDate;
     private LocalDate date;
     private ProjectState state;
     private Company company;
@@ -33,7 +33,7 @@ public class Project {
         this.summary = summary; 
         this.description = (description != null) ? description : "Descripción no definida";
         this.date = LocalDate.now(); // Fecha de creación
-        this.FinalizationDate = dueDate != null ? Date.from(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null; // Fecha de finalización
+        this.finalizationDate = dueDate != null ? Date.from(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null; // Fecha de finalización
         this.state = ProjectState.RECEIVED;
         this.comments = new ArrayList<>();
         this.students = new ArrayList<>();
@@ -52,7 +52,7 @@ public class Project {
         this.comments = new ArrayList<>();
         this.students = new ArrayList<>();
         this.tasks = new ArrayList<>();
-        this.FinalizationDate = null; // Se puede definir una fecha predeterminada si aplica
+        this.finalizationDate = null; // Se puede definir una fecha predeterminada si aplica
     }
 
     Project(UUID fromString) {
@@ -146,11 +146,11 @@ public class Project {
     }
 
     public Date getFinalizationDate() {
-        return FinalizationDate;
+        return finalizationDate;
     }
 
     public void setFinalizationDate(Date FinalizationDate) {
-        this.FinalizationDate = FinalizationDate;
+        this.finalizationDate = FinalizationDate;
     }
 
     public float getBudget() {
