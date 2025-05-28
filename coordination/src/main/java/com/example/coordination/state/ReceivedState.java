@@ -1,7 +1,7 @@
 package com.example.coordination.state;
 
-import com.example.coordination.entity.Project;
-import com.example.coordination.entity.ProjectStateEnum;
+import com.example.coordination.domain.model.Project;
+import com.example.coordination.domain.model.ProjectStateEnum;
 
 public class ReceivedState implements ProjectState {
 

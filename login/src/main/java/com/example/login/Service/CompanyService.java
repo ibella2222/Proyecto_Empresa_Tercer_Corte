@@ -1,5 +1,7 @@
 package com.example.login.Service;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,5 +149,9 @@ public class CompanyService {
             logger.error("Error en registerCompany: {}", e.getMessage(), e);
             throw new RuntimeException("Error al registrar empresa: " + e.getMessage(), e);
         }
+    }
+
+    public Optional<Company> findByNit(String nit) {
+        return companyRepository.findByNit(nit);
     }
 }

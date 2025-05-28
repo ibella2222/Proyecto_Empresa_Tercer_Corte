@@ -117,7 +117,7 @@ public Company(){
     
     @Override
     public String toString() {
-        return "Empresa{" + "username=" + getUsername() + ", nit=" + nit + ", sector=" + sector + '}';
+        return "Empresa{" + "Nombre" + getName() + "username=" + getUsername() + ", nit=" + nit + ", sector=" + sector + '}';
     }
 
 

@@ -1,11 +1,10 @@
-package com.example.coordination.repository;
+package com.example.coordination.adapter.repository;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import com.example.coordination.domain.model.Project;
 
-import com.example.coordination.entity.Project;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +17,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     void deleteById(UUID projectId);
 
     // Encuentra todos los proyectos asociados a un NIT de empresa
-    @Query("SELECT p FROM Project p WHERE p.companyNit = :nit")
     List<Project> findByCompanyNit(String companyNit);
 
     // Encuentra proyectos por estado

@@ -1,13 +1,14 @@
-package com.example.coordination.service;
+package com.example.coordination.domain.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.coordination.adapter.repository.StudentRepository;
+import com.example.coordination.domain.model.Student;
 import com.example.coordination.dto.StudentDTO;
-import com.example.coordination.entity.Student;
-import com.example.coordination.repository.StudentRepository;
+
 
 @Service
 public class StudentService {

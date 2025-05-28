@@ -1,9 +1,11 @@
-package com.example.coordination.messaging;
+package com.example.coordination.adapter.messaging;
 
+import com.example.coordination.adapter.repository.ProjectRepository;
+import com.example.coordination.domain.model.Project;
+import com.example.coordination.domain.model.ProjectStateEnum;
 import com.example.coordination.dto.ProjectEvent;
-import com.example.coordination.entity.Project;
-import com.example.coordination.entity.ProjectStateEnum;
-import com.example.coordination.repository.ProjectRepository;
+
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +21,7 @@ public class ProjectEventListener {
 
     @RabbitListener(queues = "project.events.cristobal.queue")
     public void handleProjectEvent(ProjectEvent event) {
-        System.out.println("Proyecto recibido desde el micro de proyectos:");
+        System.out.println("Proyecto recibido desde el micro de empresa:");
         System.out.println("ID: " + event.getId());
         System.out.println("Nombre: " + event.getName());
         // ... demás prints ...

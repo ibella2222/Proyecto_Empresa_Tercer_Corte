@@ -1,7 +1,6 @@
 package com.example.coordination.state;
 
-import com.example.coordination.entity.Project;
-
+import com.example.coordination.domain.model.Project;
 
 public class InExecutionState implements ProjectState {
 
@@ -20,4 +19,6 @@ public class InExecutionState implements ProjectState {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'startExecution'");
     }
+
+
 }

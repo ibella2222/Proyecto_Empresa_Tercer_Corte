@@ -16,6 +16,7 @@ public class CompanyService {
         this.repository = repository;
     }
 
+
     public boolean registerCompany(String username, String password, String nit, 
                                   String name, String sector, String contactPhone, 
                                   String contactFirstName, String contactLastName, 
@@ -50,8 +51,8 @@ public class CompanyService {
     public boolean existsCompanyNIT(String nit) {
         return repository.existsCompanyNIT(nit);
     }
-public Company getCompanyByUserId(int userId) {
-    return ((CompanyRepositoryImpl) repository).getCompanyByUserId(userId);
-}
+    public Company getCompanyByUserId(int userId) {
+        return ((CompanyRepositoryImpl) repository).getCompanyByUserId(userId);
+    }
 
 }

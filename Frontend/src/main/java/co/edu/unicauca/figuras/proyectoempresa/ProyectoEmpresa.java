@@ -4,7 +4,9 @@
  */
 package co.edu.unicauca.figuras.proyectoempresa;
 
+import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
 import co.edu.unicauca.proyectocurso.access.DatabaseConnection;
+import co.edu.unicauca.proyectocurso.access.ICompanyRepository;
 import co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl;
 import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
@@ -25,8 +27,11 @@ import javax.swing.SwingUtilities;
  * @author yeixongec
  */
 public class ProyectoEmpresa {
-
     public static void main(String[] args) {
+            
             java.awt.EventQueue.invokeLater(() -> new GUILogin().setVisible(true));
+
+            
+            
     }
 }

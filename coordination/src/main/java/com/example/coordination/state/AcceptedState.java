@@ -1,10 +1,11 @@
 package com.example.coordination.state;
 
 
+import com.example.coordination.domain.model.Project;
+import com.example.coordination.domain.model.ProjectStateEnum;
+import com.example.coordination.domain.service.StudentService;
 import com.example.coordination.dto.StudentDTO;
-import com.example.coordination.entity.Project;
-import com.example.coordination.entity.ProjectStateEnum;
-import com.example.coordination.service.StudentService;
+
 
 import java.util.List;
 

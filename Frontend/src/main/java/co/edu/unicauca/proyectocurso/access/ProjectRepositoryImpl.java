@@ -1,5 +1,6 @@
 package co.edu.unicauca.proyectocurso.access;
 import co.edu.unicauca.proyectocurso.adapterDate.LocalDateAdapter;
+import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import com.google.gson.GsonBuilder;
 import java.time.LocalDate;
 import co.edu.unicauca.proyectocurso.domain.entities.Project;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class ProjectRepositoryImpl implements IProjectRepository {
 
     private static final String BASE_URL;
+    private final ICompanyRepository companyRepository = new CompanyRepositoryImpl();
 
     static {
         String url = "http://localhost:8083/projects"; // Valor por defecto
@@ -67,13 +69,29 @@ public class ProjectRepositoryImpl implements IProjectRepository {
         try {
             String response = sendGetRequest(BASE_URL + "/all");
             Type listType = new TypeToken<ArrayList<Project>>() {}.getType();
-            return gson.fromJson(response, listType);
+            List<Project> projects = gson.fromJson(response, listType);
+
+            // Asociar la empresa completa a cada proyecto usando companyNIT
+            for (Project project : projects) {
+                String nit = project.getCompanyNIT();
+                if (nit != null && !nit.isEmpty()) {
+                    Company fullCompany = companyRepository.findByNIT(nit);
+                    if (fullCompany != null) {
+                        project.setCompany(fullCompany);
+                    } else {
+                        System.err.println("⚠️ Empresa con NIT " + nit + " no encontrada.");
+                    }
+                } else {
+                    System.err.println("⚠️ Proyecto sin NIT de empresa: " + project.getName());
+                }
+            }
+
+            return projects;
         } catch (Exception e) {
             System.err.println("Error al obtener proyectos: " + e.getMessage());
             return new ArrayList<>();
         }
     }
-
     @Override
     public boolean update(Project project) {
         try {

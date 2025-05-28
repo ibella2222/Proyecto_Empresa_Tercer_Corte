@@ -1,9 +1,9 @@
-package com.example.coordination.service;
+package com.example.coordination.domain.service;
 
 import org.springframework.stereotype.Service;
 
 import com.example.coordination.state.ProjectState;
-import com.example.coordination.entity.ProjectStateEnum;
+import com.example.coordination.domain.model.ProjectStateEnum;
 import com.example.coordination.state.*;
 
 @Service

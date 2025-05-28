@@ -14,5 +14,6 @@ public interface ICompanyRepository {
     boolean save(Company company);
     List<Company> findAll();
     public boolean existsCompanyNIT(String companyNIT);
+    public Company findByNIT(String nit);
     
 }

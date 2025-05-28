@@ -1,4 +1,4 @@
-package com.example.coordination.entity;
+package com.example.coordination.domain.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;

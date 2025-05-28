@@ -21,8 +21,14 @@ public class ProjectController {
         this.service = service;
     }
 
+    // // Listar todos los proyectos como entidades completas
+    // @GetMapping("/all")
+    // public List<Project> listFull() {
+    //     return service.listAll();
+    // }
+
     // Listar todos los proyectos como DTOs
-    @GetMapping
+    @GetMapping("/all")
     public List<ProjectDTO> list() {
         return service.listAll().stream()
                 .map(this::convertToDTO)

@@ -1,8 +1,8 @@
-package com.example.coordination.messaging;
+package com.example.coordination.adapter.messaging;
 
-import com.example.coordination.config.RabbitMQConfig;
+import com.example.coordination.domain.model.ProjectStateEnum;
 import com.example.coordination.dto.ProjectEvent;
-import com.example.coordination.entity.ProjectStateEnum;
+import com.example.coordination.infrastructure.RabbitMQConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +20,9 @@ public class ProjectEventPublisher {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendProjectStateChange(UUID projectId, String projectName,String summary, String objectives, String description, int maxDurationMonths, BigDecimal budget, LocalDate startDate, String companyNIT, ProjectStateEnum newState) {
+    public void sendProjectStateChange(UUID projectId, String projectName, String summary, String objectives,
+                                       String description, int maxDurationMonths, BigDecimal budget,
+                                       LocalDate startDate, String companyNIT, ProjectStateEnum newState) {
         ProjectEvent event = new ProjectEvent(
                 projectId,
                 projectName,
@@ -34,15 +36,15 @@ public class ProjectEventPublisher {
                 newState.toString()
         );
 
-        // Usa una sola routing key que coincida con el comodín definido en la configuración
-        String routingKey = "project." + newState.name().toLowerCase();
+        // Routing key que hará que el mensaje llegue a 'coordinator.to.company.queue'
+        String routingKey = RabbitMQConfig.COORDINATOR_ROUTING_KEY;
 
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.PROJECT_EVENT_EXCHANGE,
+                RabbitMQConfig.COMPANY_EXCHANGE,
                 routingKey,
                 event
         );
 
-        System.out.println("Mensaje enviado a RabbitMQ con routing key [" + routingKey + "]: " + event);
+        System.out.println("Mensaje enviado a RabbitMQ con routing key [" + routingKey + "] en exchange [" + RabbitMQConfig.COMPANY_EXCHANGE + "]: " + event);
     }
 }

@@ -8,6 +8,7 @@ import co.edu.unicauca.proyectocurso.access.DatabaseConnection;
 import co.edu.unicauca.proyectocurso.access.IProjectRepository;
 import co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.*;
+import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
 import co.edu.unicauca.proyectocurso.domain.services.Observer;
 import co.edu.unicauca.proyectocurso.domain.services.ProjectService;
 import java.awt.BorderLayout;

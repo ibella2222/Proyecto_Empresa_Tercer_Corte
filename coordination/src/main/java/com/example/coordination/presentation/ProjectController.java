@@ -1,10 +1,12 @@
-package com.example.coordination.controller;
+package com.example.coordination.presentation;
 
-import com.example.coordination.repository.ProjectRepository;
-import com.example.coordination.service.ProjectService;
+
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.coordination.adapter.repository.ProjectRepository;
+import com.example.coordination.domain.service.ProjectService;
 
 import java.util.UUID;
 

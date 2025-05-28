@@ -1,8 +1,10 @@
-package com.example.coordination.messaging;
+package com.example.coordination.adapter.messaging;
 
-import com.example.coordination.entity.Message;
+
+import com.example.coordination.domain.model.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
 
 @Component
 public class MessageListener {

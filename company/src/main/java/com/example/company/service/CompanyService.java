@@ -15,7 +15,7 @@ public class CompanyService {
     }
 
     public void saveCompanyDTO(CompanyDTO dto) {
-        if (companyRepository.existsById(dto.getNit())) {
+        if (companyRepository.existsById(dto.getId())) {
             System.out.println("⚠ Empresa con NIT " + dto.getNit() + " ya existe. No se guardará nuevamente.");
             return;
         }

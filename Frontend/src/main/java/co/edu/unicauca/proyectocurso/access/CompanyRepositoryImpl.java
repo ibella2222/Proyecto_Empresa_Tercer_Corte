@@ -53,7 +53,27 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
                 .build();
         this.gson = new Gson();
     }
+    
+@Override
+public Company findByNIT(String nit) {
+    String url = BASE_URL + "/nit/" + nit;
 
+    String response = sendGetRequest(url);
+    if (response != null && !response.trim().isEmpty()) {
+        try {
+            Company empresa = gson.fromJson(response, Company.class);
+            System.out.println("✅ Empresa encontrada: " + empresa); // ← Aquí se imprime
+            return empresa;
+        } catch (Exception e) {
+            System.err.println("❌ Error al deserializar empresa por NIT: " + e.getMessage());
+            e.printStackTrace();
+        }
+    } else {
+        System.out.println("⚠️ No se encontró empresa con NIT: " + nit);
+    }
+    return null;
+}
+    
     @Override
     public boolean existsCompanyNIT(String companyNIT) {
         // Endpoint para verificar si el NIT existe

@@ -1,9 +1,10 @@
-package com.example.coordination.service;
+package com.example.coordination.domain.service;
 
-import com.example.coordination.entity.Project;
-import com.example.coordination.entity.ProjectStateEnum;
-import com.example.coordination.messaging.ProjectEventPublisher;
-import com.example.coordination.repository.ProjectRepository;
+
+import com.example.coordination.adapter.messaging.ProjectEventPublisher;
+import com.example.coordination.adapter.repository.ProjectRepository;
+import com.example.coordination.domain.model.Project;
+import com.example.coordination.domain.model.ProjectStateEnum;
 import com.example.coordination.state.ProjectState;
 
 

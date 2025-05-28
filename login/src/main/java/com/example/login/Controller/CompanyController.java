@@ -154,4 +154,11 @@ public class CompanyController {
             ));
         }
     }
+
+    @GetMapping("/nit/{nit}")
+    public ResponseEntity<Company> findByNit(@PathVariable String nit) {
+        Optional<Company> company = companyService.findByNit(nit);
+        return company.map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

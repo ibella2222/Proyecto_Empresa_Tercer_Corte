@@ -1,6 +1,6 @@
 package com.example.coordination.state;
 
-import com.example.coordination.entity.Project;
+import com.example.coordination.domain.model.Project;
 
 public interface ProjectState {
     void accept(Project project);

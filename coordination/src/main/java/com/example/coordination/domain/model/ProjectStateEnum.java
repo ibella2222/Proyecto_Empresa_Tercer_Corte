@@ -1,4 +1,4 @@
-package com.example.coordination.entity;
+package com.example.coordination.domain.model;
 
 public enum ProjectStateEnum {
     RECEIVED,
