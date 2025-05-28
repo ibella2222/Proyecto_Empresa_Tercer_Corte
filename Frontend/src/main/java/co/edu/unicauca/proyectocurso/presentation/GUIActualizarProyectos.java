@@ -38,6 +38,7 @@ public class GUIActualizarProyectos extends javax.swing.JFrame {
             if (fila != -1) {
                 cargarDatosProyecto(fila);
             }
+            
         });
     }
 
@@ -75,6 +76,7 @@ public class GUIActualizarProyectos extends javax.swing.JFrame {
         txtFecha = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(232, 240, 254));
 
         jLabel1.setText("Editar un Proyecto");
 
