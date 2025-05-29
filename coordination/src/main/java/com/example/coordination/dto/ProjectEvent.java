@@ -1,11 +1,18 @@
 package com.example.coordination.dto;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class ProjectEvent {
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProjectEvent implements Serializable {
     private UUID id;
     private String name;
     private String summary;
@@ -13,13 +20,16 @@ public class ProjectEvent {
     private String description;
     private int maxMonths;
     private BigDecimal budget;
-    private LocalDate startDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private LocalDate date;
+
     private String companyNIT;
-    private String status;
-    
+    private String state;
+     
   
     public ProjectEvent(UUID id, String name, String summary, String objectives, String description, int maxMonths,
-            BigDecimal budget, LocalDate startDate, String companyNIT, String status) {
+            BigDecimal budget, LocalDate date, String companyNIT, String state) {
         this.id = id;
         this.name = name;
         this.summary = summary;
@@ -27,9 +37,9 @@ public class ProjectEvent {
         this.description = description;
         this.maxMonths = maxMonths;
         this.budget = budget;
-        this.startDate = startDate;
+        this.date = date;
         this.companyNIT = companyNIT;
-        this.status = status;
+        this.state = state;
     }
   
     public UUID getId() {
@@ -74,11 +84,11 @@ public class ProjectEvent {
     public void setBudget(BigDecimal budget) {
         this.budget = budget;
     }
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDate getDate() {
+        return date;
     }
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setStartDate(LocalDate date) {
+        this.date = date;
     }
     public String getCompanyNIT() {
         return companyNIT;
@@ -86,10 +96,10 @@ public class ProjectEvent {
     public void setCompanyNIT(String companyNIT) {
         this.companyNIT = companyNIT;
     }
-    public String getStatus() {
-        return status;
+    public String getState() {
+        return state;
     }
-    public void setStatus(String status) {
-        this.status = status;
+    public void setState(String state) {
+        this.state = state;
     }
 }

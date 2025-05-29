@@ -54,7 +54,7 @@ public class ProjectService {
             project.getDescription(),
             project.getMaxMonths(),
             project.getBudget(), // Asegúrate de que este cast sea seguro
-            project.getStartDate(),
+            project.getDate(),
             project.getCompanyNit(),
             project.getState()
         );
@@ -78,7 +78,7 @@ public class ProjectService {
             savedProject.getDescription(),
             savedProject.getMaxMonths(),
             savedProject.getBudget(),
-            savedProject.getStartDate(),
+            savedProject.getDate(),
             savedProject.getCompanyNit(),
             savedProject.getState()
         );
@@ -102,7 +102,7 @@ public class ProjectService {
             savedProject.getDescription(),
             savedProject.getMaxMonths(),
             savedProject.getBudget(),
-            savedProject.getStartDate(),
+            savedProject.getDate(),
             savedProject.getCompanyNit(),
             savedProject.getState()
         );

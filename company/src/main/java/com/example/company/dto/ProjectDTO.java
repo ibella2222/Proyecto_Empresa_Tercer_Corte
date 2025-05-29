@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 
 
 @Data
@@ -19,8 +21,13 @@ public class ProjectDTO implements Serializable {
     private String summary;
     private String objectives;
     private String description;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate date;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate finalizationDate;
+    
     private String state;
     private String companyNIT;
     private String justification;

@@ -55,12 +55,10 @@ public class ProjectService {
         project.setState("RECEIVED");
 
         Project saved = repository.save(project);
-
         try {
-            String json = mapper.writeValueAsString(saved);
-            rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", json);
+            rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", saved);
         } catch (Exception e) {
-            System.err.println("❌ Error al serializar el proyecto: " + e.getMessage());
+            System.err.println("❌ Error al enviar el proyecto por RabbitMQ: " + e.getMessage());
         }
 
         return saved;

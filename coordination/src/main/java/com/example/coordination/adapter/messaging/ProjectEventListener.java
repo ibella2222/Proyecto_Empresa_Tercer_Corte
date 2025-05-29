@@ -8,6 +8,7 @@ import com.example.coordination.dto.ProjectEvent;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Component
@@ -19,6 +20,7 @@ public class ProjectEventListener {
         this.projectRepository = projectRepository;
     }
 
+    @Transactional
     @RabbitListener(queues = "company.project.queue")
     public void handleProjectEvent(ProjectEvent event) {
         System.out.println("Proyecto recibido desde el micro de empresa:");
@@ -36,8 +38,8 @@ public class ProjectEventListener {
                 event.getDescription(),
                 event.getMaxMonths(),
                 event.getBudget(),
-                event.getStartDate(),
-                ProjectStateEnum.valueOf(event.getStatus()) // Asegúrate que el enum coincida
+                event.getDate(),
+                ProjectStateEnum.valueOf(event.getState()) // Asegúrate que el enum coincida
         );
 
         // Guardar en base de datos local del microservicio de coordinación

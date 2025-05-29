@@ -1,8 +1,12 @@
 package com.example.coordination.domain.model;
 import jakarta.persistence.*;
+
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+
+
 
 @Entity
 @Table(name = "projects")
@@ -36,12 +40,12 @@ public class Project {
     private BigDecimal budget;
 
     @Column(nullable = true)
-    private LocalDate startDate;
+    private LocalDate date;
 
     public Project() {}
 
     public Project(UUID id, String name, String companyNit, String summary, String objectives, String description, 
-                   int maxMonths, BigDecimal budget, LocalDate startDate, ProjectStateEnum state) {
+                   int maxMonths, BigDecimal budget, LocalDate date, ProjectStateEnum state) {
         this.id = id;
         this.name = name;
         this.companyNit = companyNit;
@@ -50,7 +54,7 @@ public class Project {
         this.description = description;
         this.maxMonths = maxMonths;
         this.budget = budget;
-        this.startDate = startDate;
+        this.date = date;
         this.state = state;
     }
 
@@ -128,11 +132,11 @@ public class Project {
         this.budget = budget;
     }
 
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDate getDate() {
+        return date;
     }
 
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 }
