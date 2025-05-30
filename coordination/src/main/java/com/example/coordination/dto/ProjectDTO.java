@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProjectEvent implements Serializable {
+public class ProjectDTO implements Serializable {
     private UUID id;
     private String name;
     private String summary;
@@ -24,11 +24,15 @@ public class ProjectEvent implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate date;
 
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private LocalDate finalizationDate;
+
     private String companyNIT;
     private String state;
      
   
-    public ProjectEvent(UUID id, String name, String summary, String objectives, String description, int maxMonths,
+    public ProjectDTO(UUID id, String name, String summary, String objectives, String description, int maxMonths,
             BigDecimal budget, LocalDate date, String companyNIT, String state) {
         this.id = id;
         this.name = name;

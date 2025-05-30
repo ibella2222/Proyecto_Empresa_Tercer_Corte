@@ -1,8 +1,12 @@
 package com.example.coordination.adapter.messaging;
 
 import com.example.coordination.domain.model.ProjectStateEnum;
-import com.example.coordination.dto.ProjectEvent;
+import com.example.coordination.dto.ProjectDTO;
 import com.example.coordination.infrastructure.RabbitMQConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,30 +25,42 @@ public class ProjectEventPublisher {
     }
 
     public void sendProjectStateChange(UUID projectId, String projectName, String summary, String objectives,
-                                       String description, int maxDurationMonths, BigDecimal budget,
-                                       LocalDate startDate, String companyNIT, ProjectStateEnum newState) {
-        ProjectEvent event = new ProjectEvent(
-                projectId,
-                projectName,
-                summary,
-                objectives,
-                description,
-                maxDurationMonths,
-                budget,
-                startDate,
-                companyNIT,
-                newState.toString()
-        );
+                                    String description, int maxDurationMonths, BigDecimal budget,
+                                    LocalDate startDate, String companyNIT, ProjectStateEnum newState) {
+        ProjectDTO event = new ProjectDTO(
+                        projectId,
+                        projectName,
+                        summary,
+                        objectives,
+                        description,
+                        maxDurationMonths,
+                        budget,
+                        startDate,
+                        companyNIT,
+                        newState.toString()
+                );
 
-        // Routing key que hará que el mensaje llegue a 'coordinator.to.company.queue'
-        String routingKey = RabbitMQConfig.COORDINATOR_ROUTING_KEY;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.COMPANY_EXCHANGE,
-                routingKey,
-                event
-        );
+            String json = mapper.writeValueAsString(event);
 
-        System.out.println("Mensaje enviado a RabbitMQ con routing key [" + routingKey + "] en exchange [" + RabbitMQConfig.COMPANY_EXCHANGE + "]: " + event);
+            String routingKey = RabbitMQConfig.COORDINATOR_ROUTING_KEY;
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.COMPANY_EXCHANGE,
+                    routingKey,
+                    json
+            );
+
+            System.out.println("📤 Proyecto enviado como JSON a RabbitMQ:");
+            System.out.println(json);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error serializando ProjectDTO a JSON: " + e.getMessage());
+        }
     }
 }

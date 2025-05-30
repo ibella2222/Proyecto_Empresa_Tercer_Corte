@@ -212,6 +212,7 @@ public class GUICoordProyPendientes extends javax.swing.JFrame implements Observ
             int responseCode = con.getResponseCode();
             if (responseCode == 200) {
                 JOptionPane.showMessageDialog(this, "Proyecto aprobado correctamente.");
+                projectService.notifyObservers(); 
             } else {
                 JOptionPane.showMessageDialog(this, "Error al aprobar proyecto. Código: " + responseCode);
             }
@@ -258,6 +259,7 @@ public class GUICoordProyPendientes extends javax.swing.JFrame implements Observ
                     int responseCode = con.getResponseCode();
                     if (responseCode == 200) {
                         JOptionPane.showMessageDialog(this, "Proyecto rechazado con justificación: " + justificacion);
+                        projectService.notifyObservers(); // Notificar a los observadores del cambio
                     } else {
                         JOptionPane.showMessageDialog(this, "Error al rechazar proyecto. Código: " + responseCode);
                     }

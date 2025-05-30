@@ -2,11 +2,9 @@ package com.example.coordination.presentation;
 
 
 
+import com.example.coordination.application.port.in.ProjectUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.example.coordination.adapter.repository.ProjectRepository;
-import com.example.coordination.domain.service.ProjectService;
 
 import java.util.UUID;
 
@@ -14,18 +12,16 @@ import java.util.UUID;
 @RequestMapping("/api/projects")
 public class ProjectController {
 
-    private final ProjectRepository projectRepository;
-    private final ProjectService projectService;
+    private final ProjectUseCase projectUseCase;
 
-    public ProjectController(ProjectRepository projectRepository, ProjectService projectService) {
-        this.projectRepository = projectRepository;
-        this.projectService = projectService;
+    public ProjectController(ProjectUseCase projectUseCase) {
+        this.projectUseCase = projectUseCase;
     }
 
     @PutMapping("/{id}/approve")
     public ResponseEntity<String> approveProject(@PathVariable UUID id) {
         try {
-            projectService.acceptProject(id);
+            projectUseCase.acceptProject(id);
             return ResponseEntity.ok("Proyecto aprobado correctamente.");
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -37,12 +33,24 @@ public class ProjectController {
     @PutMapping("/{id}/reject")
     public ResponseEntity<String> rejectProject(@PathVariable UUID id) {
         try {
-            projectService.rejectProject(id);
-            return ResponseEntity.ok("Proyecto rechazado correctamente con justificación.");
+            projectUseCase.rejectProject(id);
+            return ResponseEntity.ok("Proyecto rechazado correctamente.");
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body("Error interno al rechazar el proyecto.");
+        }
+    }
+
+    @PutMapping("/{id}/start")
+    public ResponseEntity<String> startExecution(@PathVariable UUID id) {
+        try {
+            projectUseCase.startExecution(id);
+            return ResponseEntity.ok("Ejecución del proyecto iniciada.");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body("Error al iniciar ejecución del proyecto.");
         }
     }
 }

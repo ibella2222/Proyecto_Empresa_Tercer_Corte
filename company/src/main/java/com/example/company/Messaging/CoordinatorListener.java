@@ -23,7 +23,7 @@ public class CoordinatorListener {
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // Ignora campos extra
     }
 
-    @RabbitListener(queues = "company.project.queue")
+    @RabbitListener(queues = "coordinator.to.company.queue")
     public void receiveProjectStatus(String message) {
         System.out.println("📩 Mensaje JSON recibido desde coordinator:");
         System.out.println(message);
