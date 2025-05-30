@@ -14,6 +14,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="mi-proyecto-microservicios" target="1.5" />
       <module name="project" target="17" />
       <module name="ProyectoEmpresa" target="17" />
     </bytecodeTargetLevel>
