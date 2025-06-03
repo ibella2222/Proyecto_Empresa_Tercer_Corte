@@ -13,6 +13,7 @@ import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import co.edu.unicauca.proyectocurso.domain.entities.Project;
 import co.edu.unicauca.proyectocurso.domain.entities.ProjectState;
 import co.edu.unicauca.proyectocurso.domain.entities.Student;
+import co.edu.unicauca.proyectocurso.presentation.GUICoordEstadisticas;
 import co.edu.unicauca.proyectocurso.presentation.GUICoordProyPendientes;
 import co.edu.unicauca.proyectocurso.presentation.GUIRegistrarUsuarios;
 import co.edu.unicauca.proyectocurso.presentation.GUILogin;
@@ -29,8 +30,8 @@ import javax.swing.SwingUtilities;
 public class ProyectoEmpresa {
     public static void main(String[] args) {
             
-            java.awt.EventQueue.invokeLater(() -> new GUILogin().setVisible(true));
-
+           java.awt.EventQueue.invokeLater(() -> new GUILogin().setVisible(true));
+          
             
             
     }

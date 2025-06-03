@@ -1,9 +1,13 @@
 package com.example.coordination.adapter.messaging;
 
 import com.example.coordination.adapter.repository.ProjectRepository;
+import com.example.coordination.adapter.repository.ProjectStatsRepository;
 import com.example.coordination.domain.model.Project;
 import com.example.coordination.domain.model.ProjectStateEnum;
+import com.example.coordination.domain.model.ProjectStats;
 import com.example.coordination.dto.ProjectDTO;
+
+import java.time.LocalDate;
 
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -13,11 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class ProjectEventListener {
+    private final ProjectStatsRepository projectStatsRepository;
 
     private final ProjectRepository projectRepository;
 
-    public ProjectEventListener(ProjectRepository projectRepository) {
+    public ProjectEventListener(ProjectRepository projectRepository, ProjectStatsRepository projectStatsRepository) {
         this.projectRepository = projectRepository;
+        this.projectStatsRepository = projectStatsRepository;
     }
 
     @Transactional
@@ -41,6 +47,11 @@ public class ProjectEventListener {
                 event.getDate(),
                 ProjectStateEnum.valueOf(event.getState()) // Asegúrate que el enum coincida
         );
+        ProjectStats evento = new ProjectStats();
+        evento.setProjectId(project.getId());
+        evento.setState(project.getState());
+        evento.setChangeDate(LocalDate.now());
+        projectStatsRepository.save(evento);
 
         // Guardar en base de datos local del microservicio de coordinación
         projectRepository.save(project);
