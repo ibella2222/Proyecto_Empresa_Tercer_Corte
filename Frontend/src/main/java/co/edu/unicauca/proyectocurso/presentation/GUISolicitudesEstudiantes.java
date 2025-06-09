@@ -179,7 +179,7 @@ public class GUISolicitudesEstudiantes extends javax.swing.JFrame implements Obs
                     .orElse(null);
             
             if (studentProject != null) {
-                ArrayList<Student> students = studentRepository.findStudentsByProjectId(studentProject.getProjectID());
+                ArrayList<Student> students = studentRepository.findStudentsByProjectId(studentProject.getProjectId());
                 projectService.inExecuteValidation(studentProject, students);
                      Project proyecto = projectService.getInExecutionProjects()
                     .stream()

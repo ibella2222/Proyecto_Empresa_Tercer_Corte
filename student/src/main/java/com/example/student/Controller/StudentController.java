@@ -1,5 +1,6 @@
 package com.example.student.Controller;
 
+
 import com.example.student.Entities.Student;
 import com.example.student.Repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,11 @@ public class StudentController {
     }
 
     /**
-     * Obtiene un estudiante por su ID
+     * Obtiene un estudiante por su username
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<Student> getStudentById(@PathVariable int id) {
-        return studentRepository.findById(id)
+    @GetMapping("/{username}")
+    public ResponseEntity<Student> getStudentByUsername(@PathVariable String username) {
+        return studentRepository.findById(username)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -50,7 +51,7 @@ public class StudentController {
     @PostMapping
     public ResponseEntity<String> createStudent(@RequestBody Student student) {
         boolean exists = studentRepository.findAll().stream()
-                .anyMatch(s -> s.getId() == student.getId() &&
+                .anyMatch(s -> s.getUsername().equals(student.getUsername()) &&
                         projectIdEquals(s.getProjectId(), student.getProjectId()));
 
         if (exists) {
@@ -64,36 +65,36 @@ public class StudentController {
     /**
      * Actualiza un estudiante existente
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<Student> updateStudent(@PathVariable int id, @RequestBody Student student) {
-        if (!studentRepository.existsById(id)) {
+    @PutMapping("/{username}")
+    public ResponseEntity<Student> updateStudent(@PathVariable String username, @RequestBody Student student) {
+        if (!studentRepository.existsById(username)) {
             return ResponseEntity.notFound().build();
         }
 
-        student.setId(id);
+        student.setUsername(username);
         Student updatedStudent = studentRepository.save(student);
         return ResponseEntity.ok(updatedStudent);
     }
 
     /**
-     * Elimina un estudiante por ID
+     * Elimina un estudiante por username
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable int id) {
-        if (!studentRepository.existsById(id)) {
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable String username) {
+        if (!studentRepository.existsById(username)) {
             return ResponseEntity.notFound().build();
         }
 
-        studentRepository.deleteById(id);
+        studentRepository.deleteById(username);
         return ResponseEntity.noContent().build();
     }
 
     /**
      * Asigna un proyecto a un estudiante
      */
-    @PatchMapping("/{id}/project/{projectId}")
-    public ResponseEntity<Student> assignProjectToStudent(@PathVariable int id, @PathVariable String projectId) {
-        return studentRepository.findById(id)
+    @PatchMapping("/{username}/project/{projectId}")
+    public ResponseEntity<Student> assignProjectToStudent(@PathVariable String username, @PathVariable String projectId) {
+        return studentRepository.findById(username)
                 .map(student -> {
                     student.setProjectId(projectId);
                     return ResponseEntity.ok(studentRepository.save(student));
@@ -104,9 +105,9 @@ public class StudentController {
     /**
      * Cancela la postulación de un estudiante a un proyecto
      */
-    @DeleteMapping("/{studentId}/projects/{projectId}")
-    public ResponseEntity<String> cancelApplication(@PathVariable int studentId, @PathVariable String projectId) {
-        Student student = studentRepository.findById(studentId).orElse(null);
+    @DeleteMapping("/{username}/projects/{projectId}")
+    public ResponseEntity<String> cancelApplication(@PathVariable String username, @PathVariable String projectId) {
+        Student student = studentRepository.findById(username).orElse(null);
 
         if (student == null || !projectId.equals(student.getProjectId())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró la postulación");

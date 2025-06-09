@@ -182,7 +182,7 @@ public class ProjectService extends Observado {
     }
     
     public void inExecuteValidation(StudentProject studentProject, ArrayList<Student> students){
-        Project proyecto = repository.findById(UUID.fromString(studentProject.getProjectID()));
+        Project proyecto = repository.findById(UUID.fromString(studentProject.getProjectId()));
                   if (students.size() == 1) {
                     proyecto.setState(ProjectState.IN_EXECUTION);
                         repository.update(proyecto);

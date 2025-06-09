@@ -31,9 +31,9 @@ public class CoordinatorListener {
         try {
             ProjectDTO dto = mapper.readValue(message, ProjectDTO.class);
             projectService.updateProjectStatus(dto);
-            System.out.println("✅ Estado actualizado: " + dto.getId() + " → " + dto.getState());
+            System.out.println(" Estado actualizado: " + dto.getId() + " → " + dto.getState());
         } catch (Exception e) {
-            System.err.println("❌ Error al deserializar ProjectDTO: " + e.getMessage());
+            System.err.println(" Error al deserializar ProjectDTO: " + e.getMessage());
         }
     }
 }

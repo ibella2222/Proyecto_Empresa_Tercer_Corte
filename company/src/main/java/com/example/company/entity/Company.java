@@ -1,5 +1,6 @@
 package com.example.company.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
@@ -8,7 +9,7 @@ import lombok.Data;
 @Data
 public class Company {
     @Id
-    private int id;
+    @Column(unique = true, nullable = false)
     private String username;
     private String nit;
     private String name;

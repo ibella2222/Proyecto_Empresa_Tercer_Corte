@@ -15,7 +15,8 @@ public class CompanyService {
     }
 
     public void saveCompanyDTO(CompanyDTO dto) {
-        if (companyRepository.existsById(dto.getId())) {
+        // Ahora verificamos por NIT en vez de ID
+        if (companyRepository.existsByNit(dto.getNit())) {
             System.out.println("⚠ Empresa con NIT " + dto.getNit() + " ya existe. No se guardará nuevamente.");
             return;
         }
@@ -30,6 +31,7 @@ public class CompanyService {
         company.setContactPosition(dto.getContactPosition());
 
         companyRepository.save(company);
-        System.out.println(" Empresa guardada en la base de datos con NIT: " + dto.getNit());
+        System.out.println("✅ Empresa guardada en la base de datos con NIT: " + dto.getNit());
     }
 }
+

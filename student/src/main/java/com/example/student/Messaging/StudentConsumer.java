@@ -20,7 +20,6 @@ public class StudentConsumer {
         System.out.println("Recibido estudiante por cola: " + dto);
 
         Student student = new Student();
-        student.setId(dto.getId());
         student.setUsername(dto.getUsername());
         student.setFirstName(dto.getFirstName());
         student.setLastName(dto.getLastName());

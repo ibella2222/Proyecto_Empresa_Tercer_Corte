@@ -1,49 +1,44 @@
 package co.edu.unicauca.proyectocurso.access;
 
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
-
 
 public class CompanyRepositoryImpl implements ICompanyRepository {
 
-    // URL base para apuntar al controlador Spring Boot
     private static final String BASE_URL;
 
     static {
-        String url = "http://localhost:8080/api/companies"; // Valor por defecto
+        String url = "http://localhost:8080/api/companies";
         try {
             Properties props = new Properties();
             props.load(CompanyRepositoryImpl.class.getClassLoader().getResourceAsStream("config.properties"));
             String configUrl = props.getProperty("login.api");
             if (configUrl != null && !configUrl.trim().isEmpty()) {
                 url = configUrl.trim();
-            } else {
-                System.out.println("⚠️ 'loguin.api' no está definido en config.properties. Usando valor por defecto.");
             }
         } catch (Exception e) {
             System.err.println("⚠️ No se pudo cargar 'config.properties'. Usando URL por defecto.");
-            e.printStackTrace();
         }
         BASE_URL = url;
     }
 
-    
     private final HttpClient client;
     private final Gson gson;
 
@@ -53,153 +48,48 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
                 .build();
         this.gson = new Gson();
     }
-    
-@Override
-public Company findByNIT(String nit) {
-    String url = BASE_URL + "/nit/" + nit;
 
-    String response = sendGetRequest(url);
-    if (response != null && !response.trim().isEmpty()) {
-        try {
-            Company empresa = gson.fromJson(response, Company.class);
-            System.out.println("✅ Empresa encontrada: " + empresa); // ← Aquí se imprime
-            return empresa;
-        } catch (Exception e) {
-            System.err.println("❌ Error al deserializar empresa por NIT: " + e.getMessage());
-            e.printStackTrace();
-        }
-    } else {
-        System.out.println("⚠️ No se encontró empresa con NIT: " + nit);
-    }
-    return null;
-}
-    
     @Override
-    public boolean existsCompanyNIT(String companyNIT) {
-        // Endpoint para verificar si el NIT existe
-        String url = BASE_URL + "/check-nit/" + companyNIT;
-
-        // Realizar la petición HTTP GET
-        String response = sendGetRequest(url);
-
-        // Comprobar la respuesta, que debería ser un objeto JSON con un campo "exists"
+    public boolean save(Company company) {
         try {
+            String url = BASE_URL + "/register/" + company.getUsername();  // ← Ahora usa username
+
+            CompanyDTO dto = new CompanyDTO(
+                    company.getNit(),
+                    company.getName(),
+                    company.getSector(),
+                    company.getContactPhone(),
+                    company.getContactFirstName(),
+                    company.getContactLastName(),
+                    company.getContactPosition()
+            );
+
+            String json = gson.toJson(dto);
+            String response = sendPostRequestJson(url, json);
+
             if (response != null) {
-                ExistsResponse existsResponse = gson.fromJson(response, ExistsResponse.class);
-                return existsResponse.exists;
+                SaveResponse saveResponse = gson.fromJson(response, SaveResponse.class);
+                return saveResponse.message != null && saveResponse.message.contains("registrada");
             }
+
         } catch (Exception e) {
-            System.err.println("Error al verificar NIT: " + e.getMessage());
             e.printStackTrace();
         }
+
         return false;
     }
 
-@Override
-public boolean save(Company company) {
-    try {
-        // Endpoint para registrar una empresa (usando el endpoint existente)
-        String url = BASE_URL + "/register/" + company.getId(); // Use userId, not company.getId()
-        
-        // Crear DTO para enviar en formato JSON
-        CompanyDTO companyDTO = new CompanyDTO(
-            company.getNit(),
-            company.getName(),
-            company.getSector(),
-            company.getContactPhone(),
-            company.getContactFirstName(),
-            company.getContactLastName(),
-            company.getContactPosition()
-        );
-        
-        // Convertir objeto a JSON
-        String jsonData = gson.toJson(companyDTO);
-        
-        // Realizar la petición HTTP POST con datos JSON
-        // Asegurar que se está enviando el Content-Type: application/json
-        String response = sendPostRequestJson(url, jsonData);
-        
-        if (response != null) {
-            SaveResponse saveResponse = gson.fromJson(response, SaveResponse.class);
-            // Si hay un mensaje de éxito, la empresa se guardó correctamente
-            return saveResponse.message != null && saveResponse.message.contains("registrada correctamente");
-        }
-    } catch (Exception e) {
-        System.err.println("Error al guardar empresa: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return false;
-}
-
-// Método para enviar solicitud POST con datos JSON
-private String sendPostRequestJson(String url, String jsonData) {
-    try {
-        // Crear conexión HTTP
-        URL apiUrl = new URL(url);
-        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-        connection.setRequestMethod("POST");
-        
-        // Establecer encabezados para enviar JSON
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setDoOutput(true);
-        
-        // Enviar datos JSON
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = jsonData.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-        
-        // Leer respuesta
-        int responseCode = connection.getResponseCode();
-        if (responseCode >= 200 && responseCode < 300) {
-            // Respuesta exitosa
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                return response.toString();
-            }
-        } else {
-            // Error en la respuesta
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                System.err.println("Error HTTP " + responseCode + ": " + response.toString());
-                return null;
-            }
-        }
-    } catch (Exception e) {
-        System.err.println("Error al enviar solicitud HTTP: " + e.getMessage());
-        e.printStackTrace();
-        return null;
-    }
-}
-
     @Override
     public List<Company> findAll() {
-        // Endpoint para obtener todas las empresas
         String url = BASE_URL + "/all";
-
-        // Realizar la petición HTTP GET
         String response = sendGetRequest(url);
-
         List<Company> companies = new ArrayList<>();
 
         if (response != null) {
             try {
-                // Definir el tipo para la deserialización de la lista
-                Type companyListType = new TypeToken<ArrayList<Company>>(){}.getType();
-                companies = gson.fromJson(response, companyListType);
+                Type listType = new TypeToken<List<Company>>() {}.getType();
+                companies = gson.fromJson(response, listType);
             } catch (Exception e) {
-                System.err.println("Error al obtener lista de empresas: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -207,41 +97,35 @@ private String sendPostRequestJson(String url, String jsonData) {
         return companies;
     }
 
-public Company getCompanyByUserId(int userId) {
-    // Construir la URL del endpoint
-    String url = BASE_URL + "/user/" + userId;
+    @Override
+    public Company findByNIT(String nit) {
+        String url = BASE_URL + "/nit/" + nit;
+        String response = sendGetRequest(url);
 
-    // Realizar la petición HTTP GET
-    String response = sendGetRequest(url);
-
-    Company company = null;
-
-    // Validar que la respuesta no sea nula ni vacía
-    if (response != null && !response.trim().isEmpty()) {
-        try {
-            company = gson.fromJson(response, Company.class);
-        } catch (Exception e) {
-            System.err.println("Error al obtener empresa por userId: " + e.getMessage());
-            e.printStackTrace();
+        if (response != null && !response.isBlank()) {
+            try {
+                return gson.fromJson(response, Company.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    } else {
-        System.out.println("La respuesta está vacía o es nula.");
+
+        return null;
     }
 
-    // Validar si se obtuvo la empresa correctamente
-    if (company != null) {
-        System.out.println("Empresa encontrada: " + company.toString());
-    } else {
-        System.out.println("No se encontró ninguna empresa para el userId: " + userId);
+    @Override
+    public boolean existsCompanyNIT(String nit) {
+        String url = BASE_URL + "/check-nit/" + nit;
+        String response = sendGetRequest(url);
+
+        if (response != null) {
+            ExistsResponse exists = gson.fromJson(response, ExistsResponse.class);
+            return exists.exists;
+        }
+
+        return false;
     }
 
-    return company;
-}
-
-
-    /**
-     * Método para realizar una solicitud HTTP GET
-     */
     private String sendGetRequest(String url) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -252,46 +136,57 @@ public Company getCompanyByUserId(int userId) {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            
-            // Comprobar si la respuesta es exitosa (código 200-299)
+
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 return response.body();
             } else {
-                System.err.println("Error HTTP: " + response.statusCode() + " - " + response.body());
-                return null;
+                System.err.println("❌ Error GET: " + response.statusCode());
             }
+
         } catch (Exception e) {
-            System.err.println("Error en la solicitud GET: " + e.getMessage());
             e.printStackTrace();
         }
+
         return null;
     }
 
-    /**
-     * Método para realizar una solicitud HTTP POST con JSON
-     */
+    private String sendPostRequestJson(String url, String jsonData) {
+        try {
+            URL apiUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true);
 
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonData.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
 
-    // Clases auxiliares para deserialización
+            int code = connection.getResponseCode();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    (code >= 200 && code < 300) ?
+                            connection.getInputStream() :
+                            connection.getErrorStream(),
+                    StandardCharsets.UTF_8
+            ));
 
-    /**
-     * Clase para deserializar la respuesta del endpoint check-nit
-     */
-    private static class ExistsResponse {
-        private boolean exists;
+            StringBuilder result = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.append(line.trim());
+            }
+
+            return result.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    /**
-     * Clase para deserializar la respuesta del endpoint register
-     */
-    private static class SaveResponse {
-        private String message;
-        private int companyId;
-    }
-
-    /**
-     * DTO para enviar al registrar una empresa
-     */
+    // DTO para POST
     private static class CompanyDTO {
         private final String nit;
         private final String name;
@@ -301,8 +196,8 @@ public Company getCompanyByUserId(int userId) {
         private final String contactLastName;
         private final String contactPosition;
 
-        public CompanyDTO(String nit, String name, String sector, String contactPhone, 
-                         String contactFirstName, String contactLastName, String contactPosition) {
+        public CompanyDTO(String nit, String name, String sector, String contactPhone,
+                          String contactFirstName, String contactLastName, String contactPosition) {
             this.nit = nit;
             this.name = name;
             this.sector = sector;
@@ -311,5 +206,13 @@ public Company getCompanyByUserId(int userId) {
             this.contactLastName = contactLastName;
             this.contactPosition = contactPosition;
         }
+    }
+
+    private static class SaveResponse {
+        private String message;
+    }
+
+    private static class ExistsResponse {
+        private boolean exists;
     }
 }

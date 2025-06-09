@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.edu.unicauca.proyectocurso.domain.services;
 
 import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
@@ -9,64 +5,50 @@ import co.edu.unicauca.proyectocurso.domain.entities.Student;
 import java.util.List;
 
 public class StudentService extends Observado {
-    private StudentRepositoryImpl StudentRepository;
-    
+    private final StudentRepositoryImpl studentRepository;
+
     public StudentService(StudentRepositoryImpl repository) {
-        this.StudentRepository = repository;
+        this.studentRepository = repository;
     }
-    
+
     public StudentService() {
-        this.StudentRepository = new StudentRepositoryImpl();
+        this.studentRepository = new StudentRepositoryImpl();
     }
-    
+
     /**
-     * Registra un nuevo estudiante en el sistema
+     * Registra un nuevo estudiante
      */
-    public boolean registerStudent(String username, String password, String firstName, String lastName, String program, String project_id, int id) {
-        
-        if (StudentRepository.studentExists(username)) {
-            System.out.println("❌ El Estudiante ya existe.");
-            return false;
-        }
-        return StudentRepository.registerStudent(username, password, firstName, lastName, program, project_id,id);
+    public boolean registerStudent(String username, String firstName, String lastName, String program, String projectId) {
+        // Keycloak ya gestiona el username, así que solo se usa como referencia
+        Student student = new Student(username, firstName, lastName, program, projectId);
+        return studentRepository.save(username, student);  // <- Pasa el username por separado
     }
-    
+
     /**
-     * Obtiene la lista de todos los estudiantes
+     * Lista todos los estudiantes registrados
      */
     public List<Student> listEstudiantes() {
-        return StudentRepository.findAll();
+        return studentRepository.findAll();
     }
-    
-    /**
-     * Obtiene la lista de proyectos disponibles
-     */
-    /*
-    public List<Object[]> getAvailableProjects() {
-        return StudentRepository.findAvailableProjects();
-    }
-    
-    /**
-     * Asigna un proyecto a un estudiante usando el nombre de usuario
-     */
-    /*
-    public boolean assignProjectToStudent(String username, String projectId) {
-         // Obtener el ID del estudiante desde la base de datos
-         String studentId = StudentRepository.getStudentIdByUsername(username);
-         if (studentId == null) {
-             System.out.println("No se encontró el estudiante con username: " + username);
-             return false;
-         }
-         System.out.println("Asignando proyecto " + projectId + " al estudiante con ID: " + studentId);
-         return StudentRepository.insertStudentProject(studentId, projectId, "RECEIVED");
-     }
 
-    
     /**
-     * Obtiene un estudiante por su nombre de usuario
+     * Obtiene un estudiante por su username
      */
     public Student getStudentByUsername(String username) {
-        return StudentRepository.findByUsername(username);
+        return studentRepository.findByUsername(username);
     }
-    
+
+    /**
+     * Lista estudiantes por ID de proyecto
+     */
+    public List<Student> listStudentsByProjectId(String projectId) {
+        return studentRepository.findStudentsByProjectId(projectId);
+    }
+
+    /**
+     * Verifica si un estudiante existe por su username
+     */
+    public boolean studentExists(String username) {
+        return studentRepository.studentExists(username);
+    }
 }

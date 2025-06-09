@@ -1,24 +1,50 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.edu.unicauca.proyectocurso.domain.entities;
-
-import java.util.UUID;
-
-/**
- *
- * @author Lenovo pc
- */
 
 public class StudentProject {
 
+    private int id;
+    private String studentUsername;
+    private String projectId;
+    private Student student;
+    private Project project;
+    private Status status = Status.RECEIVED;
+
+    // Constructor completo
+    public StudentProject(int id, String studentUsername, String projectId, Status status) {
+        this.id = id;
+        this.studentUsername = studentUsername;
+        this.projectId = projectId;
+        this.student = new Student(); // Puedes asociar luego si lo necesitas
+        this.project = new Project(); // Igual aquí
+        this.status = status;
+    }
+
+    // Constructor vacío
+    public StudentProject() {}
+
+    // Getters y Setters
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getStudentUsername() {
+        return studentUsername;
+    }
+
+    public void setStudentUsername(String studentUsername) {
+        this.studentUsername = studentUsername;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
     public Student getStudent() {
@@ -37,45 +63,6 @@ public class StudentProject {
         this.project = project;
     }
 
-    
-    private int id;
-    private String studentID;
-    private String projectID;
-    private Student student;
-    private Project project;
-    private Status status = Status.RECEIVED;
-
-    // Constructor con parámetros
-    public StudentProject(int id, String studentID, String projectID, Status status) {
-        this.id = id;
-        this.studentID = studentID;
-        this.projectID = projectID;
-        this.student = new Student(UUID.fromString(studentID), id);
-        this.project = new Project(UUID.fromString(projectID));
-        this.status = status;
-    }
-    
-    public StudentProject(){}
-
-    // Getters y Setters
-
-    
-    public String getStudentID() {
-        return studentID;
-    }
-
-    public void setStudentID(String studentID) {
-        this.studentID = studentID;
-    }
-
-    public String getProjectID() {
-        return projectID;
-    }
-
-    public void setProjectID(String projectID) {
-        this.projectID = projectID;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -92,9 +79,9 @@ public class StudentProject {
     @Override
     public String toString() {
         return "StudentProject{" +
-                "id=" + getId() +
-                ", studentID=" + getStudentID() +
-                ", projectID=" + getProjectID() +
+                "id=" + id +
+                ", studentUsername='" + studentUsername + '\'' +
+                ", projectId='" + projectId + '\'' +
                 ", status=" + status +
                 '}';
     }

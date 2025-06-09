@@ -1,74 +1,37 @@
-
 package co.edu.unicauca.proyectocurso.domain.entities;
 
-import java.util.UUID;
+public class Student {
 
-/**
- *
- * @author ibell
- */
-public class Student extends User {
-    private int U_id;
-    private UUID idd;
+    private String username;     // Identificador funcional desde Keycloak (email, username, etc.)
     private String firstName;
     private String lastName;
     private String program;
-    private String projectID;
-   
-    public Student(String email, String password, String firstName, String lastName, String program, String projectID, int U_id) {
-        super(email, password, "Estudiante",U_id);
-        this.idd = UUID.randomUUID();
+    private String projectId;
+
+    // Constructor completo
+    public Student(String username, String firstName, String lastName, String program, String projectId) {
+        this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.program = program;
-        this.projectID = projectID;
-    }
-    
-    public Student(UUID id,int U_id) {
-        super("", "", "Estudiante", U_id); // Se deja el email y password vacíos por defecto
-        this.idd = id;
-    }
-    
-    public Student(String id, String firstName, String lastName, String program, String projectID,int U_id){
-        super("x", "x", "Estudiante",U_id);
-        this.idd = UUID.fromString(id);
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.program = program;
-        this.projectID = projectID;
-        
- 
+        this.projectId = projectId;
     }
 
-        public Student(){
-        }
-    
+    // Constructor vacío
+    public Student() {
+    }
+
+    // Getters y setters
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getFirstName() {
         return firstName;
-    }
-
-    public UUID getIdd() {
-        return idd;
-    }
-
-    public void setId(UUID id) {
-        this.idd = id;
-    }
-
-    public String getProgram() {
-        return program;
-    }
-
-    public void setProgram(String program) {
-        this.program = program;
-    }
-
-    public String getProjectID() {
-        return projectID;
-    }
-
-    public void setProjectID(String projectID) {
-        this.projectID = projectID;
     }
 
     public void setFirstName(String firstName) {
@@ -82,8 +45,27 @@ public class Student extends User {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-   
-    @Override
+
+    public String getProgram() {
+        return program;
+    }
+
+    public void setProgram(String program) {
+        this.program = program;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
     public String getRole() {
         return "Student";
     }

@@ -5,11 +5,8 @@
 package co.edu.unicauca.proyectocurso.presentation;
 
 import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
-import co.edu.unicauca.proyectocurso.access.UserRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
-import co.edu.unicauca.proyectocurso.domain.entities.User;
 import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
-import co.edu.unicauca.proyectocurso.domain.services.UserService;
 import javax.swing.JOptionPane;
 /**
  *
@@ -17,24 +14,12 @@ import javax.swing.JOptionPane;
  */
 public class GUIRegistrarEmpresa extends javax.swing.JFrame {
 
-    /**
-     * Creates new form GUIRegistrarEmpresa
-     */
-    private String username;
-    private String password;
-    private int id;
+   
     
     private CompanyService companyService;
     
     public GUIRegistrarEmpresa(String username, String password,int id) {
-        this.username = username;
-        this.password = password;
-        this.id = id;
-        
-        
-        
-        companyService = new CompanyService(new CompanyRepositoryImpl());
-        
+        this.companyService = new CompanyService(new CompanyRepositoryImpl());
         initComponents();
         setLocationRelativeTo(null);
 
@@ -189,7 +174,6 @@ public class GUIRegistrarEmpresa extends javax.swing.JFrame {
     }//GEN-LAST:event_txtTelefonoActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
         String nit = txtNit.getText();
         String nombre = txtNombre.getText();
         String sector = txtSector.getText();
@@ -197,45 +181,33 @@ public class GUIRegistrarEmpresa extends javax.swing.JFrame {
         String contactoNombre = txtNombreContacto.getText();
         String contactoApellido = txtApellidoContacto.getText();
         String contactoCargo = txtCargoContacto.getText();
-        
-        if(nit.isEmpty() || nombre.isEmpty() || sector.isEmpty() || 
-           telefono.isEmpty() || contactoNombre.isEmpty() || 
-           contactoApellido.isEmpty() || contactoCargo.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos", 
-                                        "Error de validación", JOptionPane.ERROR_MESSAGE);
+
+        if (nit.isEmpty() || nombre.isEmpty() || sector.isEmpty() || telefono.isEmpty()
+                || contactoNombre.isEmpty() || contactoApellido.isEmpty() || contactoCargo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos", "Error de validación", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        boolean resultado = companyService.registerCompany(
-            username, password, nit, nombre, sector, 
-            telefono, contactoNombre, contactoApellido, contactoCargo,id
-        );
-        
-        if(resultado) {
+
+        Company company = new Company();
+        company.setNit(nit);
+        company.setName(nombre);
+        company.setSector(sector);
+        company.setContactPhone(telefono);
+        company.setContactFirstName(contactoNombre);
+        company.setContactLastName(contactoApellido);
+        company.setContactPosition(contactoCargo);
+
+        boolean resultado = companyService.registerCompany(company);
+
+
+        if (resultado) {
             JOptionPane.showMessageDialog(this, "Empresa registrada correctamente");
-                UserService userServiceForUpdate = new UserService(new UserRepositoryImpl());
-                boolean actualizado = userServiceForUpdate.updateProfileCompleted(username, true);
-                                UserService userService = new UserService(new UserRepositoryImpl());
-                 User user = userService.getUser(username); // ← corregido 
-                int userId = user.getId();
-                CompanyService companyService = new CompanyService(new CompanyRepositoryImpl());
-                Company company = new Company();
-    company.setNit(nit);
-    company.setName(nombre);
-    company.setSector(sector);
-    company.setContactPhone(telefono);
-    company.setContactFirstName(contactoNombre);
-    company.setContactLastName(contactoApellido);
-    company.setContactPosition(contactoCargo);
-    company.setId(id); // Usar el id pasado al constructor;
-        this.dispose();
-        JOptionPane.showMessageDialog(this, "Bienvenido, Empresa: " + username);
-        GUICompany companyGUI = new GUICompany(company);
-        companyGUI.setVisible(true);
+            this.dispose();
+            new GUICompany(company).setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, "Error al registrar la empresa", 
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al registrar la empresa", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        
     
     }//GEN-LAST:event_jButton1ActionPerformed
 

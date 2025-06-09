@@ -1,6 +1,5 @@
 package co.edu.unicauca.proyectocurso.access;
 
-import co.edu.unicauca.proyectocurso.domain.entities.User;
 import java.sql.*;
 
 public class DatabaseConnection {

@@ -139,8 +139,8 @@ int userId = user.getId();
             } else if (role.equals("Estudiante")) {
                 // Redirigir a la GUI para que complete el registro de Estudiante
                 this.dispose();
-                GUIRegistrarEstudiante guiEstudiante = new GUIRegistrarEstudiante(username, password, userId);
-                guiEstudiante.setVisible(true);
+                //GUIRegistrarEstudiante guiEstudiante = new GUIRegistrarEstudiante(username, password, userId);
+                //guiEstudiante.setVisible(true);
                 boolean actualizado = userService.updateProfileCompleted(username, true);
             }
         } else { 

@@ -44,11 +44,16 @@ public class GUIEstudiantesAsociadosAProyecto extends javax.swing.JFrame {
     
 
     
-    private void cargarEstudiantes(Project proyecto){
-       List<Student> students = studentRepository.findStudentsByProjectId(proyecto.getId().toString());
-       model.setRowCount(0);
-       for (Student p : students) {
-            model.addRow(new Object[]{p.getFirstName(), p.getLastName(), p.getProgram(), p.getId()});
+    private void cargarEstudiantes(Project proyecto) {
+        List<Student> students = studentRepository.findStudentsByProjectId(proyecto.getId().toString());
+        model.setRowCount(0);
+        for (Student p : students) {
+            model.addRow(new Object[]{
+                p.getFirstName(),
+                p.getLastName(),
+                p.getProgram(),
+                p.getUsername() // Usamos el username como ID
+            });
         }
     }
 

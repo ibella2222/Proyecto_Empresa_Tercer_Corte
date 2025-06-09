@@ -7,7 +7,7 @@ package co.edu.unicauca.proyectocurso.presentation;
 import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
-import co.edu.unicauca.proyectocurso.domain.services.UserService;
+
 
 /**
  *
@@ -15,26 +15,19 @@ import co.edu.unicauca.proyectocurso.domain.services.UserService;
  */
 public class GUICompany extends javax.swing.JFrame {
 
-    private String username;
-    private String password;
-    private String nit;
-    private String nombre;
     
+    private String nit;
     private CompanyService companyService;
 
-    public GUICompany(Company user) {
-    this.username = user.getUsername(); // o getUsername(), según tu clase
-    this.password = user.getPassword();   // Según tu clase
-    this.nit = user.getNit();
-    this.nombre = user.getName();         // Si tienes nombre como campo
-
-        
-        companyService = new CompanyService(new CompanyRepositoryImpl());
+    public GUICompany(Company company) {
+    this.nit = company.getNit();  // Solo nos interesa el NIT
+        this.companyService = new CompanyService(new CompanyRepositoryImpl());
         initComponents();
     }
     
     public GUICompany() {
-        }
+        initComponents();
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

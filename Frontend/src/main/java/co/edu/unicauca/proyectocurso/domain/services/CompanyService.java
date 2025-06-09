@@ -1,58 +1,74 @@
 package co.edu.unicauca.proyectocurso.domain.services;
 
-import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
 import co.edu.unicauca.proyectocurso.access.ICompanyRepository;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import java.util.List;
 
-/**
- *
- * @author ibell
- */
 public class CompanyService {
+
     private final ICompanyRepository repository;
 
     public CompanyService(ICompanyRepository repository) {
         this.repository = repository;
     }
 
+    /**
+     * Registra una nueva empresa usando parámetros individuales.
+     */
+    public boolean registerCompany(String username, String nit,
+                                   String name, String sector, String contactPhone,
+                                   String contactFirstName, String contactLastName,
+                                   String contactPosition) {
 
-    public boolean registerCompany(String username, String password, String nit, 
-                                  String name, String sector, String contactPhone, 
-                                  String contactFirstName, String contactLastName, 
-                                  String contactPosition, int id) {
-        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+        if (username == null || username.isBlank()) {
             return false;
         }
-        
-        Company company = new Company(username, password, nit, name, sector, 
-                                      contactPhone, contactFirstName, contactLastName, 
-                                      contactPosition, id);
+
+        Company company = new Company(username, nit, name, sector,
+                                      contactPhone, contactFirstName, contactLastName,
+                                      contactPosition);
         return repository.save(company);
     }
 
+    /**
+     * Registra una nueva empresa usando un objeto Company.
+     */
+    public boolean registerCompany(Company company) {
+        if (company == null || company.getUsername() == null || company.getUsername().isBlank()) {
+            return false;
+        }
+        return repository.save(company);
+    }
+
+    /**
+     * Retorna todas las empresas registradas
+     */
     public List<Company> listCompanies() {
         return repository.findAll();
     }
-    
-    // Método original que busca por NIT en una lista dada
+
+    /**
+     * Busca una empresa por su NIT dentro de una lista específica
+     */
     public Company findCompanyByNit(List<Company> companies, String nit) {
         return companies.stream()
                 .filter(company -> company.getNit().equals(nit))
                 .findFirst()
-                .orElse(null); // Retorna null si no encuentra coincidencias
+                .orElse(null);
     }
 
-    // Nuevo método sobrecargado que usa el repositorio directamente
+    /**
+     * Busca una empresa por NIT usando el repositorio
+     */
     public Company findCompanyByNit(String nit) {
         List<Company> companies = repository.findAll();
         return findCompanyByNit(companies, nit);
     }
+
+    /**
+     * Verifica si un NIT ya está registrado
+     */
     public boolean existsCompanyNIT(String nit) {
         return repository.existsCompanyNIT(nit);
     }
-    public Company getCompanyByUserId(int userId) {
-        return ((CompanyRepositoryImpl) repository).getCompanyByUserId(userId);
-    }
-
 }
