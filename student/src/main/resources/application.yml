@@ -4,6 +4,10 @@ spring:
   application:
     name: student-service
 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console # Asegúrate de que esta ruta coincida con la de SecurityConfig
   # --- Configuración de la Base de Datos (Ejemplo con H2 en memoria) ---
   # Cambia esto por tu configuración de PostgreSQL o la base de datos que uses
   datasource:

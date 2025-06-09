@@ -8,13 +8,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
+        <module name="company" />
         <module name="login" />
         <module name="student" />
         <module name="coordination" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="company" target="17" />
       <module name="project" target="17" />
       <module name="ProyectoEmpresa" target="17" />
     </bytecodeTargetLevel>
