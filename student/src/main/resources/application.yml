@@ -1,6 +1,5 @@
 server:
   port: 8085 # El puerto que definiste en el API Gateway
-
 spring:
   application:
     name: student-service
@@ -32,3 +31,7 @@ logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+
+# En el application.yml del microservicio de estudiante
+keycloak:
+  client-id: desktop # El client ID que viste en el token ('azp')
