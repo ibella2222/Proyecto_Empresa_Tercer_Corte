@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="api-gateway" />
         <module name="company" />
         <module name="login" />
         <module name="student" />
@@ -14,13 +15,13 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="mi-proyecto-microservicios" target="1.5" />
       <module name="project" target="17" />
       <module name="ProyectoEmpresa" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="api-gateway" options="-parameters" />
       <module name="company" options="-parameters" />
       <module name="coordination" options="-parameters" />
       <module name="login" options="-parameters" />

@@ -1,0 +1,34 @@
+server:
+  port: 8085 # El puerto que definiste en el API Gateway
+
+spring:
+  application:
+    name: student-service
+
+  # --- Configuración de la Base de Datos (Ejemplo con H2 en memoria) ---
+  # Cambia esto por tu configuración de PostgreSQL o la base de datos que uses
+  datasource:
+    url: jdbc:h2:mem:studentdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update # 'update' para desarrollo, 'validate' o 'none' para producción
+    show-sql: true
+
+  # --- Configuración de Seguridad como Resource Server ---
+  # Esto le dice a tu microservicio cómo validar los tokens JWT
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/sistema
+
+# Configuración de logging para ver detalles de seguridad
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG

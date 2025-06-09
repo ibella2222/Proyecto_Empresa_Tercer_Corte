@@ -22,6 +22,7 @@ public class ProjectStatsController {
     @GetMapping("/all")
     public ResponseEntity<?> list() {
         try {
+            System.out.println("Micro Coordinator");
             List<ProjectStats> projects = service.listAll();
             return ResponseEntity.ok(projects);
         } catch (Exception e) {
