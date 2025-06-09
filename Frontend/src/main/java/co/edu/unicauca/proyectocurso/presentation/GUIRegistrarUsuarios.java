@@ -5,8 +5,7 @@
 package co.edu.unicauca.proyectocurso.presentation;
 
 import co.edu.unicauca.figuras.proyectoempresa.*;
-import co.edu.unicauca.proyectocurso.access.UserRepositoryImpl;
-import co.edu.unicauca.proyectocurso.domain.services.UserService;
+
 
 import javax.swing.*;
 /**
@@ -15,7 +14,6 @@ import javax.swing.*;
  */
 public class GUIRegistrarUsuarios extends javax.swing.JFrame {
 
-    private UserService userService;
     private int id;
     /**
      * Creates new form GUIMenuPrincipal
@@ -24,7 +22,6 @@ public class GUIRegistrarUsuarios extends javax.swing.JFrame {
         this.id = id;
         initComponents();
         setLocationRelativeTo(null);  // Centrar la ventana
-       userService = new UserService(new UserRepositoryImpl());
         setVisible(true);  
     }
 
@@ -143,27 +140,7 @@ public class GUIRegistrarUsuarios extends javax.swing.JFrame {
     }//GEN-LAST:event_txtNombreActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-        String username = txtNombre.getText();
-        String password = new String(jPasswordField1.getPassword());
-        String role = cbRol.getSelectedItem().toString();
 
-    // Verificar que los campos no estén vacíos
-    if(username.isEmpty() || password.isEmpty() || role.equals("Seleccione")) {
-        JOptionPane.showMessageDialog(this, "Por favor complete todos los campos", 
-                                     "Error de validación", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    // Registro del usuario
-    if (userService.registerUser(username, password, role, id)) {
-        JOptionPane.showMessageDialog(this, "Usuario registrado correctamente");
-        
-    } else {
-        JOptionPane.showMessageDialog(this, "Error en el registro", 
-                                     "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    this.dispose();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void cbRolActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbRolActionPerformed

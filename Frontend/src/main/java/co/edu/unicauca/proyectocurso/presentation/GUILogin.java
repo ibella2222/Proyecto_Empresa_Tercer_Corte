@@ -4,12 +4,20 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
 import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
-import co.edu.unicauca.proyectocurso.access.UserRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
-import co.edu.unicauca.proyectocurso.domain.entities.User;
 import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
-import co.edu.unicauca.proyectocurso.domain.services.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 
@@ -19,10 +27,10 @@ import javax.swing.JPasswordField;
  */
 public class GUILogin extends javax.swing.JFrame {
 
-    private UserService userService;
+        private String token;
+
 
     public GUILogin() {
-        userService = new UserService(new UserRepositoryImpl());
         initComponents();
         setLocationRelativeTo(null);
     }
@@ -114,66 +122,402 @@ public class GUILogin extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-// Obtener usuario y contraseña
-    String username = jTextField1.getText();
-    String password = new String(jPasswordField1.getPassword());
+        
+        // Validar campos vacíos
+        String username = jTextField1.getText().trim();
+        String password = new String(jPasswordField1.getPassword());
+        
+            // Obtener token de autenticación
+            
+        try {
 
-// Crear instancia de UserService
-UserService userService = new UserService(new UserRepositoryImpl());
-User user = userService.getUser(username); // ← corregido aquí
-int userId = user.getId();
+            token = obtenerToken(username, password);
+            System.out.println("Token obtenido exitosamente"+token);
+            
 
-    // Validar usuario en la base de datos
-    String role = userService.validarUsuario(username, password);
-    boolean profileCompleted = userService.isProfileCompleted(username);
-    
-    if (role != null) {
-        // Si el usuario es Empresa o Estudiante y el perfil NO está completado, redirigir a completar el registro.
-        if (!profileCompleted && (role.equals("Empresa") || role.equals("Estudiante"))) {
-            if (role.equals("Empresa")) {
-                // Redirigir a la GUI para que complete el registro de Empresa
-                this.dispose();
-                GUIRegistrarEmpresa guiEmpresa = new GUIRegistrarEmpresa(username, password,userId);
-                guiEmpresa.setVisible(true);
-                boolean actualizado = userService.updateProfileCompleted(username, true);
-            } else if (role.equals("Estudiante")) {
-                // Redirigir a la GUI para que complete el registro de Estudiante
-                this.dispose();
-                //GUIRegistrarEstudiante guiEstudiante = new GUIRegistrarEstudiante(username, password, userId);
-                //guiEstudiante.setVisible(true);
-                boolean actualizado = userService.updateProfileCompleted(username, true);
+            
+            // Extraer rol desde Keycloak
+            String role = extraerRolDelToken(token);
+            System.out.println("Rol extraído: " + role);
+            
+            // Obtener información adicional del usuario desde la base de datos local (si es necesario)
+            System.out.println("token"+token); 
+            // Procesar login con información de Keycloak
+            procesarLoginConKeycloak(role, username, password);
+
+            
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            String errorMessage = "Error de conexión: ";
+            if (e.getMessage().contains("401") || e.getMessage().contains("autenticación")) {
+                errorMessage = "Usuario o contraseña incorrectos";
+                
+            } else {
+                errorMessage += e.getMessage();
             }
-        } else { 
-            // Si el perfil ya está completado o el rol no es Empresa/Estudiante, redirigir a la GUI principal según el rol.
-            if (role.equals("Admin")) {
-                  this.dispose();
-                JOptionPane.showMessageDialog(this, "Bienvenido, Administrador.");
-                GUIAdmin adminGUI = new GUIAdmin();
-                adminGUI.setVisible(true);
-            } else if (role.equals("Estudiante")) {
-                this.dispose();
-                JOptionPane.showMessageDialog(this, "Bienvenido, Estudiante: " + username);
-                GUIStudent estudianteGUI = new GUIStudent(username);
-                estudianteGUI.setVisible(true);
-            } else if (role.equals("Coordinador")) {
-                this.dispose();
-                JOptionPane.showMessageDialog(this, "Bienvenido, Coordinador: " + username);
-                GUICoord coordGUI = new GUICoord();
-                coordGUI.setVisible(true);
-            } else if (role.equals("Empresa")) {
-                    CompanyService companyService = new CompanyService(new CompanyRepositoryImpl());
-                Company company = companyService.getCompanyByUserId(userId);
-                this.dispose();
-                JOptionPane.showMessageDialog(this, "Bienvenido, Empresa: " + username);
-                GUICompany companyGUI = new GUICompany(company); 
-                companyGUI.setVisible(true);
-            }
-        }
-    } else {
-        JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error inesperado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }    }//GEN-LAST:event_jButton1ActionPerformed
 
+// También corregir el método obtenerToken
+private static String obtenerToken(String username, String password) throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create("http://localhost:8080/realms/sistema/protocol/openid-connect/token"))
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .POST(HttpRequest.BodyPublishers.ofString(
+            "client_id=desktop&grant_type=password&username=" + username + "&password=" + password))
+        .build();
+    
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    
+    // Validar respuesta
+    if (response.statusCode() != 200) {
+        throw new IOException("Error en autenticación: " + response.statusCode());
+    }
+    
+    JSONObject json = new JSONObject(response.body());
+    return json.getString("access_token"); // Cambiar getStr por getString
+}
 
+// Corregir el método extraerRolDeKeycloak
+/**
+ * Método que toma el token JWT como String y extrae el rol
+ */
+private String extraerRolDelToken(String jwtToken) {
+    try {
+        // 1. Decodificar el token JWT para obtener el payload
+        JSONObject tokenPayload = decodificarTokenJWT(jwtToken);
+        
+        // 2. Buscar roles en el payload decodificado
+        String rol = buscarRolEnPayload(tokenPayload);
+        
+
+        
+        // 4. Rol por defecto si no se encuentra ninguno
+        if (rol == null) {
+            System.out.println("No se pudo determinar el rol, asignando rol por defecto");
+            rol = "usuario"; // o el rol por defecto que prefieras
+        }
+        
+        return rol;
+        
+    } catch (Exception e) {
+        System.err.println("Error extrayendo rol del token: " + e.getMessage());
+        e.printStackTrace();
+        return "usuario"; // rol por defecto en caso de error
+    }
+}
+
+/**
+ * Decodifica un token JWT y retorna el payload como JSONObject
+ */
+private JSONObject decodificarTokenJWT(String jwtToken) {
+    try {
+        // El token JWT tiene formato: header.payload.signature
+        String[] parts = jwtToken.split("\\.");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Token JWT inválido - no tiene 3 partes");
+        }
+        
+        // Obtener el payload (parte 2)
+        String payload = parts[1];
+        
+        // Agregar padding para Base64 si es necesario
+        while (payload.length() % 4 != 0) {
+            payload += "=";
+        }
+        
+        // Decodificar Base64
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
+        String decodedPayload = new String(decodedBytes);
+        
+        // Convertir String JSON a JSONObject
+        return new JSONObject(decodedPayload);
+        
+    } catch (Exception e) {
+        throw new RuntimeException("Error decodificando token JWT: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Busca roles específicos en el payload del token
+ */
+private String buscarRolEnPayload(JSONObject tokenPayload) {
+    try {
+        System.out.println("=== DEBUG: Contenido completo del token ===");
+        System.out.println(tokenPayload.toString(2)); // Pretty print para debug
+        
+        // Opción 1: Buscar en realm_access -> roles
+        if (tokenPayload.has("realm_access")) {
+            JSONObject realmAccess = tokenPayload.getJSONObject("realm_access");
+            System.out.println("Realm access encontrado: " + realmAccess.toString(2));
+            
+            if (realmAccess.has("roles")) {
+                JSONArray roles = realmAccess.getJSONArray("roles");
+                System.out.println("Roles en realm_access: " + roles.toString());
+                
+                for (int i = 0; i < roles.length(); i++) {
+                    String role = roles.getString(i);
+                    System.out.println("Evaluando rol: " + role);
+                    
+                    // Buscar roles específicos de tu aplicación
+                    if (role.equals("admin") || role.equals("student") || 
+                        role.equals("coordinator") || role.equals("company")) {
+                        System.out.println("Rol encontrado: " + role);
+                        return role;
+                    }
+                }
+            }
+        }
+        
+        // Opción 2: Buscar en resource_access -> desktop -> roles (ROLES DEL CLIENTE)
+        if (tokenPayload.has("resource_access")) {
+            JSONObject resourceAccess = tokenPayload.getJSONObject("resource_access");
+            System.out.println("Resource access encontrado: " + resourceAccess.toString(2));
+            
+            // Buscar específicamente en el cliente "desktop"
+            if (resourceAccess.has("desktop")) {
+                JSONObject desktopClient = resourceAccess.getJSONObject("desktop");
+                System.out.println("Cliente desktop encontrado: " + desktopClient.toString(2));
+                
+                if (desktopClient.has("roles")) {
+                    JSONArray roles = desktopClient.getJSONArray("roles");
+                    System.out.println("Roles en cliente desktop: " + roles.toString());
+                    
+                    for (int i = 0; i < roles.length(); i++) {
+                        String role = roles.getString(i);
+                        System.out.println("Evaluando rol del cliente: " + role);
+                        
+                        if (role.equals("admin") || role.equals("student") || 
+                            role.equals("coordinator") || role.equals("company")) {
+                            System.out.println("Rol del cliente encontrado: " + role);
+                            return role;
+                        }
+                    }
+                }
+            } else {
+                System.out.println("ADVERTENCIA: No se encontró el cliente 'desktop' en resource_access");
+                System.out.println("Clientes disponibles: " + resourceAccess.keySet());
+            }
+            
+            // También buscar en otros clientes por si acaso
+            for (String clientName : resourceAccess.keySet()) {
+                System.out.println("Revisando cliente: " + clientName);
+                JSONObject clientAccess = resourceAccess.getJSONObject(clientName);
+                if (clientAccess.has("roles")) {
+                    JSONArray roles = clientAccess.getJSONArray("roles");
+                    System.out.println("Roles en " + clientName + ": " + roles.toString());
+                    
+                    for (int i = 0; i < roles.length(); i++) {
+                        String role = roles.getString(i);
+                        if (role.equals("admin") || role.equals("student") || 
+                            role.equals("coordinator") || role.equals("company")) {
+                            System.out.println("Rol encontrado en " + clientName + ": " + role);
+                            return role;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Opción 3: Buscar en atributos personalizados directos
+        if (tokenPayload.has("custom_role")) {
+            return tokenPayload.getString("custom_role");
+        }
+        
+        // Opción 4: Buscar por preferred_username o email para determinar rol
+        if (tokenPayload.has("preferred_username")) {
+            String username = tokenPayload.getString("preferred_username");
+            System.out.println("Username encontrado: " + username);
+            // Aquí podrías implementar lógica para determinar el rol basado en el username
+            // Por ejemplo, consultar una base de datos local
+        }
+        
+        System.out.println("No se encontró ningún rol específico");
+        return null;
+        
+    } catch (Exception e) {
+        System.err.println("Error buscando rol en payload: " + e.getMessage());
+        e.printStackTrace();
+        return null;
+    }
+}
+// Modificación del método procesarLoginConKeycloak para validar el perfil de empresa
+
+private void procesarLoginConKeycloak(String role, String username, String password) {
+    if (role != null) {
+        if (role.equals("company")) {
+            try {
+                // Verificar si la empresa ya existe y tiene perfil completo
+                boolean perfilCompleto = verificarPerfilEmpresa(username);
+                
+                if (!perfilCompleto) {
+                    // Si no tiene perfil completo, redirigir al registro
+                    JOptionPane.showMessageDialog(this, 
+                        "Bienvenido. Complete su perfil de empresa para continuar.", 
+                        "Completar Perfil", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    this.dispose();
+                    GUIRegistrarEmpresa guiEmpresa = new GUIRegistrarEmpresa(username);
+                    guiEmpresa.setVisible(true);
+                } else {
+                    // Si ya tiene perfil completo, ir a la GUI principal
+                    mostrarGUIEmpresa(username);
+                }
+                
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Error verificando perfil de empresa: " + e.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+            
+        } else { 
+            // Resto de roles (admin, student, coordinator)
+            manejarOtrosRoles(role, username);
+        }
+    } else {
+        JOptionPane.showMessageDialog(this, "Usuario sin rol asignado en Keycloak", 
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+/**
+ * Verifica si una empresa ya tiene su perfil completado
+ * @param username El nombre de usuario de Keycloak
+ * @return true si el perfil está completo, false si necesita completarlo
+ */
+private boolean verificarPerfilEmpresa(String username) throws Exception {
+    try {
+        // Intentar obtener la empresa por username desde el microservicio
+        String url = "http://localhost:8083/companies/user/" + username;
+        String response = llamarServicio(token, url);
+        
+        if (response != null && !response.trim().isEmpty()) {
+            // Parsear la respuesta para verificar si tiene todos los campos necesarios
+            ObjectMapper mapper = new ObjectMapper();
+            Company company = mapper.readValue(response, Company.class);
+            
+            // Verificar si los campos críticos están completos
+            return esPerfilCompleto(company);
+        } else {
+            // Si no hay respuesta, la empresa no existe
+            return false;
+        }
+        
+    } catch (IOException e) {
+        // Si es error 404 (Not Found), significa que la empresa no existe aún
+        if (e.getMessage().contains("404") || e.getMessage().contains("Not Found")) {
+            System.out.println("Empresa no encontrada para usuario: " + username);
+            return false;
+        }
+        // Para otros errores, relanzar la excepción
+        throw e;
+    }
+}
+
+/**
+ * Verifica si todos los campos críticos de la empresa están completos
+ * @param company La empresa a verificar
+ * @return true si el perfil está completo
+ */
+private boolean esPerfilCompleto(Company company) {
+    if (company == null) {
+        return false;
+    }
+    
+           // Puedes agregar más validaciones según tus campos
+            return true;
+}
+
+/**
+ * Muestra la GUI principal de empresa con los datos cargados
+ */
+private void mostrarGUIEmpresa(String username) {
+    try {
+        String url = "http://localhost:8083/companies/user/" + username;
+        String response = llamarServicio(token, url);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        Company company = mapper.readValue(response, Company.class);
+        
+        if (company != null) {
+            JOptionPane.showMessageDialog(this, "Bienvenido, " + company.getName());
+            this.dispose();
+            GUICompany companyGUI = new GUICompany(company); 
+            companyGUI.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Error: No se encontró información de la empresa", 
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error cargando información de empresa: " + e.getMessage(), 
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+}
+
+/**
+ * Maneja el login para otros roles (admin, student, coordinator)
+ */
+private void manejarOtrosRoles(String role, String username) {
+    this.dispose();
+    
+    switch (role) {
+        case "admin":
+            JOptionPane.showMessageDialog(this, "Bienvenido, Administrador.");
+            GUIAdmin adminGUI = new GUIAdmin();
+            adminGUI.setVisible(true);
+            break;
+            
+        case "student":
+            JOptionPane.showMessageDialog(this, "Bienvenido, Estudiante: " + username);
+            GUIStudent estudianteGUI = new GUIStudent(username); // Pasar token si es necesario
+            estudianteGUI.setVisible(true);
+            break;
+            
+        case "coordinator":
+            JOptionPane.showMessageDialog(this, "Bienvenido, Coordinador: " + username);
+            // Mantener tu lógica actual de prueba del microservicio si es necesaria
+            GUICoord coordGUI = new GUICoord(); // Pasar token si es necesario
+            coordGUI.setVisible(true);
+            break;
+            
+        default:
+            JOptionPane.showMessageDialog(this, "Rol no reconocido: " + role, 
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+            break;
+    }
+}
+    /**
+     * Llama a un servicio usando el token de autenticación
+     */
+    private static String llamarServicio(String token, String url) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+        
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        // Validar respuesta
+        if (response.statusCode() != 200) {
+            throw new IOException("Error en servicio: " + response.statusCode());
+        }
+        
+        return response.body();
+    }
+    private void jPasswordField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPasswordField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jPasswordField1ActionPerformed
+
+
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">

@@ -27,17 +27,17 @@ public class CompanyService {
         Company company = new Company(username, nit, name, sector,
                                       contactPhone, contactFirstName, contactLastName,
                                       contactPosition);
-        return repository.save(company);
+        return repository.save(company, username);
     }
 
     /**
      * Registra una nueva empresa usando un objeto Company.
      */
-    public boolean registerCompany(Company company) {
-        if (company == null || company.getUsername() == null || company.getUsername().isBlank()) {
+    public boolean registerCompany(Company company, String username) {
+        if (company == null || username == null || company.getUsername().isBlank()) {
             return false;
         }
-        return repository.save(company);
+        return repository.save(company, username);
     }
 
     /**

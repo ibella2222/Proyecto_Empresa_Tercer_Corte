@@ -15,10 +15,11 @@ import javax.swing.JOptionPane;
 public class GUIRegistrarEmpresa extends javax.swing.JFrame {
 
    
-    
+    private String username; // <-- Añade esto
     private CompanyService companyService;
     
-    public GUIRegistrarEmpresa(String username, String password,int id) {
+    public GUIRegistrarEmpresa(String username) {
+        this.username = username;
         this.companyService = new CompanyService(new CompanyRepositoryImpl());
         initComponents();
         setLocationRelativeTo(null);
@@ -189,6 +190,7 @@ public class GUIRegistrarEmpresa extends javax.swing.JFrame {
         }
 
         Company company = new Company();
+        company.setUsername(username);
         company.setNit(nit);
         company.setName(nombre);
         company.setSector(sector);
@@ -197,11 +199,12 @@ public class GUIRegistrarEmpresa extends javax.swing.JFrame {
         company.setContactLastName(contactoApellido);
         company.setContactPosition(contactoCargo);
 
-        boolean resultado = companyService.registerCompany(company);
+        boolean resultado = companyService.registerCompany(company,username);
 
 
         if (resultado) {
             JOptionPane.showMessageDialog(this, "Empresa registrada correctamente");
+            company.isProfileComplete=true;
             this.dispose();
             new GUICompany(company).setVisible(true);
         } else {
@@ -273,7 +276,7 @@ public class GUIRegistrarEmpresa extends javax.swing.JFrame {
     java.awt.EventQueue.invokeLater(new Runnable() {
         public void run() {
             // Pasamos valores de prueba o temporales
-            new GUIRegistrarEmpresa("usuario_prueba", "contraseña_prueba",15).setVisible(true);
+            new GUIRegistrarEmpresa("usuario_prueba").setVisible(true);
         }
     });
     }

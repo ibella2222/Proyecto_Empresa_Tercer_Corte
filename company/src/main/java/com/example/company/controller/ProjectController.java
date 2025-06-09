@@ -5,6 +5,10 @@ import com.example.company.entity.Project;
 import com.example.company.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import com.example.company.dto.CompanyDTO;
+import com.example.company.entity.Company;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +25,7 @@ public class ProjectController {
         this.service = service;
     }
 
-    // // Listar todos los proyectos como entidades completas
-    // @GetMapping("/all")
-    // public List<Project> listFull() {
-    //     return service.listAll();
-    // }
 
-    // Listar todos los proyectos como DTOs
     @GetMapping("/all")
     public List<ProjectDTO> list() {
         return service.listAll().stream()

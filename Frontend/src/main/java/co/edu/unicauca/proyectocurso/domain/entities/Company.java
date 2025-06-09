@@ -14,6 +14,8 @@ public class Company {
     private String contactLastName;
     private String contactPosition;
     private List<Project> projects;
+    public boolean isProfileComplete;
+
 
     public Company() {
         this.projects = new ArrayList<>();

@@ -8,8 +8,9 @@ import lombok.Data;
 @Entity
 @Data
 public class Company {
-    @Id
+    
     @Column(unique = true, nullable = false)
+    @Id
     private String username;
     private String nit;
     private String name;

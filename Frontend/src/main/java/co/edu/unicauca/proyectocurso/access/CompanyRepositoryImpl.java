@@ -25,7 +25,7 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
     private static final String BASE_URL;
 
     static {
-        String url = "http://localhost:8080/api/companies";
+        String url = "http://localhost:8083/companies";
         try {
             Properties props = new Properties();
             props.load(CompanyRepositoryImpl.class.getClassLoader().getResourceAsStream("config.properties"));
@@ -50,9 +50,9 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
     }
 
     @Override
-    public boolean save(Company company) {
+    public boolean save(Company company, String username) {
         try {
-            String url = BASE_URL + "/register/" + company.getUsername();  // ← Ahora usa username
+            String url = BASE_URL + "/register/" + username;  // ← Ahora usa username
 
             CompanyDTO dto = new CompanyDTO(
                     company.getNit(),

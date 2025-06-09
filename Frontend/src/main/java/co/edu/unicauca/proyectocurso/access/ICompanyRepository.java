@@ -9,7 +9,7 @@ public interface ICompanyRepository {
      * @param company Empresa a registrar
      * @return true si se guardó correctamente, false en caso contrario
      */
-    boolean save(Company company);
+    boolean save(Company company, String username);
 
     /**
      * Retorna todas las empresas registradas.

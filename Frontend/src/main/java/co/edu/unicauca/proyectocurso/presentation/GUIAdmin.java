@@ -30,7 +30,6 @@ public class GUIAdmin extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
 
@@ -49,13 +48,6 @@ public class GUIAdmin extends javax.swing.JFrame {
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
-            }
-        });
-
-        jButton3.setText("Buscar");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
             }
         });
 
@@ -82,8 +74,7 @@ public class GUIAdmin extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton3))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
@@ -109,9 +100,7 @@ public class GUIAdmin extends javax.swing.JFrame {
                     .addComponent(jButton1)
                     .addComponent(jButton2))
                 .addGap(49, 49, 49)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4))
+                .addComponent(jButton4)
                 .addGap(18, 18, 18)
                 .addComponent(jButton5)
                 .addContainerGap(45, Short.MAX_VALUE))
@@ -121,9 +110,7 @@ public class GUIAdmin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        GUIEditarUsuario editarUsuarioGUI = new GUIEditarUsuario();
-        editarUsuarioGUI.setVisible(true);       
-        editarUsuarioGUI.setLocationRelativeTo(null); // Centrar en la pantalla
+
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -133,12 +120,8 @@ public class GUIAdmin extends javax.swing.JFrame {
     registrarUsuarios.setLocationRelativeTo(null); // Centrar en la pantalla
 
     }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        GUIBuscarUsuario buscarUsuarioGUI = new GUIBuscarUsuario();
-        buscarUsuarioGUI.setVisible(true);       
-        buscarUsuarioGUI.setLocationRelativeTo(null); // Centrar en la pantalla    }//GEN-LAST:event_jButton3ActionPerformed
-    }
+ 
+    
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         this.dispose();
         GUILogin LoginGUI = new GUILogin();
@@ -146,9 +129,7 @@ public class GUIAdmin extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-    GUIEliminarUsuario eliminarUsuarios = new GUIEliminarUsuario(); // Crear instancia
-    eliminarUsuarios.setVisible(true); // Mostrar ventana
-    eliminarUsuarios.setLocationRelativeTo(null); // Centrar en la pantalla
+
     }//GEN-LAST:event_jButton4ActionPerformed
 
     /**
@@ -189,7 +170,6 @@ public class GUIAdmin extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
