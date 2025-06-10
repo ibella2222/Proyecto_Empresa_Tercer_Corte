@@ -19,6 +19,20 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_FROM_COMPANY = "company.project.routingkey";
     public static final String STUDENT_PROJECT_QUEUE = "projects.queue.for-student-service";
 
+    // --- AÑADIR ESTAS CONSTANTES ---
+    // Definen a dónde enviaremos los mensajes de estudiantes
+    public static final String STUDENT_EXCHANGE = "student.exchange";
+    public static final String STUDENT_ROUTING_KEY = "student.routingkey";
+    // --- AÑADIR ESTE BEAN ---
+    /**
+     * Declara el exchange al que este servicio publicará los eventos de estudiantes.
+     * No es estrictamente necesario para enviar, pero es una buena práctica para la consistencia.
+     */
+    @Bean
+    public DirectExchange studentExchange() {
+        return new DirectExchange(STUDENT_EXCHANGE);
+    }
+
     /**
      * Este @Bean crea el Exchange. Spring lo guarda.
      */

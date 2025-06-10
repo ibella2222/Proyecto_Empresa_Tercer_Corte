@@ -4,9 +4,7 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
-import co.edu.unicauca.proyectocurso.access.DatabaseConnection;
-import co.edu.unicauca.proyectocurso.access.IProjectRepository;
-import co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl;
+import co.edu.unicauca.proyectocurso.access.*;
 import co.edu.unicauca.proyectocurso.domain.entities.*;
 import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
 import co.edu.unicauca.proyectocurso.domain.services.Observer;
@@ -30,7 +28,8 @@ import javax.swing.table.DefaultTableModel;
 public class GUICoordProyPendientes extends javax.swing.JFrame implements Observer {
     private ProjectService projectService = new ProjectService();
     DefaultTableModel model = new DefaultTableModel();
-    
+    private final ICompanyRepository coordinatorRepository = new CompanyRepositoryImpl();
+
 
     /**
      * Creates new form GUICoordProyPendientes
@@ -193,38 +192,48 @@ public class GUICoordProyPendientes extends javax.swing.JFrame implements Observ
     
     
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-    int filaSeleccionada = jTable1.getSelectedRow();
-    if (filaSeleccionada >= 0) {
-            String nombreProyecto = (String) model.getValueAt(filaSeleccionada, 0);
-            Project proyecto = projectService.getPendingProjects() 
-                    .stream().filter(p -> p.getName().equals(nombreProyecto))
-                    .findFirst().orElse(null);
-            String idProyecto = proyecto.getId().toString();
-
-        try {
-            // Llamada HTTP PUT al backend de coordinación
-            URL url = new URL("http://localhost:8086/api/projects/" + idProyecto + "/approve");
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("PUT");
-            con.setDoOutput(true);
-
-            int responseCode = con.getResponseCode();
-            if (responseCode == 200) {
-                JOptionPane.showMessageDialog(this, "Proyecto aprobado correctamente.");
-                projectService.notifyObservers(); 
-            } else {
-                JOptionPane.showMessageDialog(this, "Error al aprobar proyecto. Código: " + responseCode);
-            }
-
-            con.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error en la conexión con el servidor.");
-            }
-        } else {
-        JOptionPane.showMessageDialog(this, "Seleccione un proyecto");
+        int filaSeleccionada = jTable1.getSelectedRow();
+        if (filaSeleccionada < 0) {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un proyecto de la tabla.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+        // --- Lógica para obtener el ID del Proyecto ---
+        // Esta forma es frágil si dos proyectos tienen el mismo nombre.
+        // Una mejor forma sería guardar el objeto Project o su ID en el TableModel.
+        // Pero por ahora, mantendremos tu lógica.
+        String nombreProyecto = (String) model.getValueAt(filaSeleccionada, 0);
+        Project proyecto = projectService.getPendingProjects()
+                .stream().filter(p -> p.getName().equals(nombreProyecto))
+                .findFirst().orElse(null);
+
+        if (proyecto == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo encontrar el proyecto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String idProyecto = proyecto.getId().toString();
+        // --- Fin de la lógica para obtener el ID ---
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Está seguro de que desea APROBAR el proyecto: " + nombreProyecto + "?",
+                "Confirmar Aprobación",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // --- LA LÓGICA CORRECTA ---
+            // Llamamos al repositorio, que se encarga de la conexión y la seguridad.
+            boolean success = coordinatorRepository.approveProject(idProyecto);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Proyecto aprobado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                // Notificamos para que la tabla se actualice y el proyecto desaparezca de la lista
+                projectService.notifyObservers();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al aprobar el proyecto. Revise la consola para más detalles.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed

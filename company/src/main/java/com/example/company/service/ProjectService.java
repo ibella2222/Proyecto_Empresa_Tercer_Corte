@@ -38,7 +38,17 @@ public class ProjectService {
     public Optional<Project> findById(UUID id) {
         return repository.findById(id);
     }
-
+    /**
+     * Encuentra todos los proyectos que tienen un estado específico.
+     * Este método será llamado por el controlador.
+     * @param status El estado del proyecto a filtrar (ej: "ACCEPTED").
+     * @return Una lista de proyectos que coinciden con el estado.
+     */
+    public List<Project> findProjectsByStatus(String status) {
+        // Llama al nuevo método que acabamos de añadir al repositorio.
+        return repository.findByState(status);
+    }
+    // --- FIN DEL NUEVO MÉTODO ---
     @Transactional // Buena práctica para asegurar que el guardado y el envío sean atómicos
     public Project create(Project project) {
         if (project.getName() == null || project.getDescription() == null ||

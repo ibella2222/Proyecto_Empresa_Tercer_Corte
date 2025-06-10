@@ -11,4 +11,11 @@ import java.util.UUID;
 
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
     List<Project> findByCompanyNIT(String companyNIT);
+    // --- AÑADE ESTE NUEVO MÉTODO ---
+    /**
+     * Busca todos los proyectos que coincidan con un estado específico.
+     * @param state El estado a buscar (ej: "ACCEPTED", "RECEIVED").
+     * @return Una lista de proyectos que coinciden con el estado.
+     */
+    List<Project> findByState(String state);
 }

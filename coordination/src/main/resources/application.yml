@@ -2,17 +2,30 @@ server:
   port: 8086
 
 spring:
+  # Es una buena práctica definir siempre el nombre de la aplicación
+  application:
+    name: coordinator-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/coordinationdb
     driver-class-name: org.postgresql.Driver
     username: postgres
-    password: 1234  # cámbialo según corresponda
+    password: 1234 # cámbialo según corresponda
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- SECCIÓN DE SEGURIDAD AÑADIDA ---
+  # Configura este microservicio como un "Resource Server" que valida JWTs.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Debe ser la misma URL que usan el API Gateway y los otros servicios.
+          issuer-uri: http://localhost:8080/realms/sistema
 
   rabbitmq:
     host: localhost

@@ -3,6 +3,8 @@ package com.example.company.controller;
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
 import com.example.company.service.ProjectService;
+import com.example.company.entity.ProjectStateEnum; // Importa tu enum
+import java.util.stream.Collectors; // Asegúrate de tener este import
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import com.example.company.dto.CompanyDTO;
@@ -65,7 +67,26 @@ public class ProjectController {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+    // En tu ProjectController (el que maneja /projects)
 
+    @GetMapping("/status/ACCEPTED")
+    public ResponseEntity<List<ProjectDTO>> getAcceptedProjects() {
+        try {
+            // Llama al servicio usando el .name() para convertir el enum a String
+            List<Project> acceptedProjects = service.findProjectsByStatus(ProjectStateEnum.ACCEPTED.name());
+
+            // Convierte la lista de entidades a una lista de DTOs para la respuesta
+            List<ProjectDTO> dtos = acceptedProjects.stream()
+                    .map(this::convertToDTO) // Asumiendo que tienes un método convertToDto
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+
+        } catch (Exception e) {
+            // Manejo de errores en caso de que algo falle
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     // Convertir una entidad Project a un DTO
     private ProjectDTO convertToDTO(Project project) {

@@ -165,28 +165,33 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
             return;
         }
 
-        // El ID ahora es un UUID, pero lo manejamos como String para la API
-        String projectId = tableProjects.getValueAt(selectedRow, 0).toString();
-        String projectName = tableProjects.getValueAt(selectedRow, 3).toString();
+        // Obtener el ID del proyecto de la fila seleccionada
+        String projectId = tableModel.getValueAt(selectedRow, 0).toString();
+        String projectName = tableModel.getValueAt(selectedRow, 3).toString();
 
+        // Preguntar al usuario si está seguro
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Está seguro que desea postularse al proyecto: " + projectName + "?",
+                "¿Está seguro de que desea postularse al proyecto: " + projectName + "?",
                 "Confirmar Postulación",
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Llama al método del nuevo repositorio de estudiante
+            // Llamar al método applyToProject del repositorio de estudiante
+            // Este método ya está configurado para enviar el token JWT.
             boolean success = studentRepository.applyToProject(projectId);
 
             if (success) {
                 JOptionPane.showMessageDialog(this,
-                        "¡Se ha postulado exitosamente al proyecto!",
+                        "¡Se ha postulado exitosamente al proyecto!\nSu perfil será actualizado.",
                         "Éxito",
                         JOptionPane.INFORMATION_MESSAGE);
-                // Podrías actualizar la vista si fuera necesario
+
+                // Opcional: Actualizar la vista o deshabilitar el botón para evitar múltiples postulaciones
+                btnPostularse.setEnabled(false);
+
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "No se pudo realizar la postulación.\nEs posible que ya esté postulado o hubo un error en el servidor.",
+                        "No se pudo realizar la postulación.\nEs posible que ya esté postulado a otro proyecto.",
                         "Error de Postulación",
                         JOptionPane.ERROR_MESSAGE);
             }
@@ -269,8 +274,10 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     private void cargarProyectos() {
         // Limpiar la tabla
         tableModel.setRowCount(0);
-        
-    List<Project> proyectos = projectService.listProjects(); // Llama al servicio para obtener los proyectos
+        // CORRECCIÓN: Llamar al nuevo método para obtener solo proyectos aceptados
+
+
+        List<Project> proyectos = projectService.findAcceptedProjects(); // Llama al servicio para obtener los proyectos
 
     for (Project p : proyectos) {
         Object[] rowData = {

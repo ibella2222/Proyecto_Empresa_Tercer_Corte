@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class StudentDTO implements Serializable {
     
-    private Long id;
+    private String id;
     private String username;
     private String firstName;
     private String lastName;
@@ -15,7 +15,7 @@ public class StudentDTO implements Serializable {
     public StudentDTO() {
     }
     
-    public StudentDTO(Long id, String username, String firstName, String lastName, String program, String projectId) {
+    public StudentDTO(String id, String username, String firstName, String lastName, String program, String projectId) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -26,11 +26,11 @@ public class StudentDTO implements Serializable {
     
     // Getters and Setters
     
-    public Long getId() {
+    public String getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     

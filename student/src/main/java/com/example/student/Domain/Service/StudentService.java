@@ -3,16 +3,27 @@ package com.example.student.Domain.Service;
 import com.example.student.Domain.Model.Student;
 import com.example.student.Domain.Port.In.StudentUseCase;
 import com.example.student.Domain.Port.Out.StudentRepositoryPort;
+import com.example.student.Infrastructure.Config.RabbitMQConfig;
+import com.example.student.Infrastructure.Dto.StudentDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class StudentService implements StudentUseCase {
 
     private final StudentRepositoryPort studentRepositoryPort;
+    private final RabbitTemplate rabbitTemplate; // <-- 1. Añadir RabbitTemplate
+    private static final Logger logger = LoggerFactory.getLogger(StudentService.class);
 
-    public StudentService(StudentRepositoryPort studentRepositoryPort) {
+    // 2. Actualizar el constructor para que reciba RabbitTemplate
+    public StudentService(StudentRepositoryPort studentRepositoryPort, RabbitTemplate rabbitTemplate) {
         this.studentRepositoryPort = studentRepositoryPort;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Override
@@ -61,15 +72,38 @@ public class StudentService implements StudentUseCase {
     }
     @Override
     public Student createOrUpdateProfile(String studentId, String username, String firstName, String lastName, String program) {
-        // Busca al estudiante. Si no existe, crea una nueva instancia.
         Student student = studentRepositoryPort.findById(studentId)
                 .orElse(new Student(studentId, username, firstName, lastName, program));
 
-        // Actualiza los datos con la información recibida
         student.setFirstName(firstName);
         student.setLastName(lastName);
         student.setProgram(program);
 
-        return studentRepositoryPort.save(student);
+        // Guardar en la base de datos
+        Student savedStudent = studentRepositoryPort.save(student);
+        logger.info("Perfil de estudiante guardado en la BD: {}", savedStudent.getUsername());
+
+        // --- 3. ENVIAR EL MENSAJE DESPUÉS DE GUARDAR ---
+        if (savedStudent != null) {
+            StudentDTO studentDTO = toDto(savedStudent); // Convertir a DTO para el evento
+
+            // Publicar el evento en RabbitMQ
+            rabbitTemplate.convertAndSend(RabbitMQConfig.STUDENT_EXCHANGE, RabbitMQConfig.STUDENT_ROUTING_KEY, studentDTO);
+
+            logger.info("✅ Evento de estudiante enviado a RabbitMQ: {}", studentDTO);
+        }
+        // -------------------------------------------------
+
+        return savedStudent;
+    }
+    private StudentDTO toDto(Student student) {
+        return new StudentDTO(
+                student.getId(),
+                student.getUsername(),
+                student.getFirstName(),
+                student.getLastName(),
+                student.getProgram(),
+                student.getProjectId()
+        );
     }
 }

@@ -22,8 +22,10 @@ import java.util.List;
  */
 public class CompanyRepositoryImpl implements ICompanyRepository {
 
-    // CORRECCIÓN: Apuntar siempre al API Gateway.
+    // Apuntamos a la ruta base del API Gateway para el coordinador
+    private static final String BASE_URLb = "http://localhost:8081/coordinators/projects";
     private static final String BASE_URL = "http://localhost:8081/companies";
+
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
             .create();
@@ -39,6 +41,37 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
         } catch (Exception e) {
             System.err.println("ERROR: No se pudo guardar la compañía. " + e.getMessage());
             return false;
+        }
+    }
+
+    @Override
+    public boolean approveProject(String projectId) {
+        try {
+            // Construimos la URL completa para aprobar
+            String url = BASE_URLb + "/" + projectId + "/approve";
+            sendPutRequest(url); // Usamos PUT para actualizaciones de estado
+            return true;
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo aprobar el proyecto. " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Método auxiliar para enviar peticiones PUT (es como un POST sin cuerpo)
+    private void sendPutRequest(String urlString) throws Exception {
+        HttpURLConnection con = (HttpURLConnection) new URL(urlString).openConnection();
+        con.setRequestMethod("PUT");
+        con.setRequestProperty("Content-Type", "application/json"); // Aunque no enviemos body, es buena práctica
+
+        // Añadimos el token de autenticación del coordinador logueado
+        String token = AuthTokenManager.getInstance().getJwtToken();
+        if (token != null && !token.isEmpty()) {
+            con.setRequestProperty("Authorization", "Bearer " + token);
+        }
+
+        int responseCode = con.getResponseCode();
+        if (responseCode < 200 || responseCode >= 300) {
+            throw new Exception("Error del servidor en PUT: " + responseCode);
         }
     }
 

@@ -71,6 +71,7 @@ public class ProjectService extends Observado {
     public List<Project> listProjects() {
         return repository.findAll();
     }
+    public List<Project> findAcceptedProjects() { return repository.findAcceptedProjects();}
 
     /**
      * Obtiene un proyecto por su ID

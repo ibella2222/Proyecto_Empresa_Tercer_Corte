@@ -9,7 +9,7 @@ public class Student {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private String id;
 
     @Column(name = "username", nullable = false)
     private String username;
@@ -30,7 +30,7 @@ public class Student {
         // Constructor por defecto requerido por JPA
     }
 
-    public Student(Long id, String username, String firstName, String lastName, String program, String projectId) {
+    public Student(String id, String username, String firstName, String lastName, String program, String projectId) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -41,11 +41,11 @@ public class Student {
 
     // Getters y Setters
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -44,7 +44,43 @@ public class ProjectRepositoryImpl implements IProjectRepository {
         }
         BASE_URL = url;
     }
+    // ...
+    @Override
+    public List<Project> findAcceptedProjects() {
+        try {
+            String url = "http://localhost:8081/projects/status/ACCEPTED";
+            String responseJson = sendGetRequest(url);
 
+            if (responseJson != null) {
+                Type listType = new TypeToken<List<Project>>() {}.getType();
+                List<Project> projects = gson.fromJson(responseJson, listType);
+
+                // --- INICIO DE LA CORRECCIÓN: Bucle de enriquecimiento ---
+                // Este es el mismo bucle que tenías en tu método findAll().
+                // Recorre cada proyecto para buscar y adjuntar su objeto Company.
+                for (Project project : projects) {
+                    String nit = project.getCompanyNIT();
+                    if (nit != null && !nit.isEmpty()) {
+                        // Hacemos la llamada secundaria para obtener los datos de la compañía
+                        Company fullCompany = companyRepository.findByNIT(nit);
+                        if (fullCompany != null) {
+                            // Adjuntamos el objeto Company completo al proyecto
+                            project.setCompany(fullCompany);
+                        } else {
+                            System.err.println("⚠️ Empresa con NIT " + nit + " no encontrada para el proyecto " + project.getName());
+                        }
+                    }
+                }
+                // --- FIN DE LA CORRECCIÓN ---
+
+                return projects; // Ahora devolvemos la lista de proyectos "enriquecidos"
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo obtener la lista de proyectos aceptados. " + e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+// ...
 
 
     @Override

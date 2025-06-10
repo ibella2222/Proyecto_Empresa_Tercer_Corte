@@ -35,4 +35,6 @@ public interface IProjectRepository {
     boolean delete(UUID projectId);
 
     public Project findById(UUID fromString);
+
+    List<Project> findAcceptedProjects();
 }
