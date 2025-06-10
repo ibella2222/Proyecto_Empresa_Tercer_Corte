@@ -204,7 +204,7 @@ public class GUICoordProyPendientes extends javax.swing.JFrame implements Observ
 
         try {
             // Llamada HTTP PUT al backend de coordinación
-            URL url = new URL("http://localhost:8082/api/projects/" + idProyecto + "/approve");
+            URL url = new URL("http://localhost:8086/api/projects/" + idProyecto + "/approve");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
@@ -248,7 +248,7 @@ public class GUICoordProyPendientes extends javax.swing.JFrame implements Observ
 
                 try {
                     // Llamada HTTP PUT al backend de coordinación para rechazar el proyecto
-                    URL url = new URL("http://localhost:8082/api/projects/" + idProyecto + "/reject");
+                    URL url = new URL("http://localhost:8084/api/projects/" + idProyecto + "/reject");
                     HttpURLConnection con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("PUT");
                     con.setDoOutput(true);

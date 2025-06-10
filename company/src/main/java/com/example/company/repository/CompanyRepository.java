@@ -8,4 +8,5 @@ public interface CompanyRepository extends JpaRepository<Company, Integer> {
     boolean existsByNit(String nit);
     // Agregar este método para buscar por username
     Optional<Company> findByUsername(String username);
+    Optional<Company> findByNit(String nit);
 }

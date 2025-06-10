@@ -93,5 +93,8 @@ public class CompanyService {
         logger.info("Buscando empresa para el usuario: {}", username);
         return companyRepository.findByUsername(username);
     }
+    public Optional<Company> findByNit(String nit) {
+        return companyRepository.findByNit(nit);
+    }
 
 }
