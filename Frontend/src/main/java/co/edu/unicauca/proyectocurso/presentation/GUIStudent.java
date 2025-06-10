@@ -4,6 +4,8 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
+import co.edu.unicauca.proyectocurso.access.IStudentRepository;
+import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Project;
 import co.edu.unicauca.proyectocurso.domain.entities.Student;
 import co.edu.unicauca.proyectocurso.domain.services.Observer;
@@ -27,6 +29,8 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     private ProjectService projectService;
     private String username;
     private Student currentStudent;
+    // Declara el nuevo repositorio como un atributo de la clase
+    private final IStudentRepository studentRepository = new StudentRepositoryImpl();
     
        public GUIStudent() 
        {
@@ -59,6 +63,21 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
            tableModel.setColumnIdentifiers(columns);
            tableProjects.setModel(tableModel);
            cargarProyectos();
+    }
+    public GUIStudent(Student student) {
+        initComponents();
+        this.currentStudent = student;
+        this.projectService = new ProjectService();
+
+        // Configurar la GUI con la información del estudiante
+        labelName.setText(currentStudent.getFirstName() + " " + currentStudent.getLastName());
+
+        String[] columns = {"ID", "Fecha", "Empresa", "Nombre Proyecto", "Descripción"};
+        tableModel.setColumnIdentifiers(columns);
+        tableProjects.setModel(tableModel);
+
+        // Cargar los proyectos disponibles
+        cargarProyectos();
     }
 
     /**
@@ -140,44 +159,38 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnPostularseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPostularseActionPerformed
-         int selectedRow = tableProjects.getSelectedRow();
-         if (selectedRow == -1) {
-             JOptionPane.showMessageDialog(this, "Debe seleccionar un proyecto para postularse", "Advertencia", JOptionPane.WARNING_MESSAGE);
-             return;
-         }
-         
-         String projectId = tableModel.getValueAt(selectedRow, 0).toString();
-         String projectName = tableModel.getValueAt(selectedRow, 3).toString();
-         
-         int confirm = JOptionPane.showConfirmDialog(this, 
-                 "¿Está seguro que desea postularse al proyecto: " + projectName + "?", 
-                 "Confirmar Postulación", 
-                 JOptionPane.YES_NO_OPTION);
-         
-         if (confirm == JOptionPane.YES_OPTION) {
-             try {
-                // boolean result = studentService.assignProjectToStudent(username, projectId);
-                 
-  /*               if (result) {
-                     JOptionPane.showMessageDialog(this, 
-                             "Se ha postulado exitosamente al proyecto", 
-                             "Éxito", 
-                             JOptionPane.INFORMATION_MESSAGE);
-                     cargarProyectos();
-                 } else {
-                     JOptionPane.showMessageDialog(this, 
-                             "No se puedo realizar la postulación, debido a que usted ya está postulado a este proyecto.", 
-                             "Error", 
-                             JOptionPane.ERROR_MESSAGE);
-                 }*/
-             } catch (Exception ex) {
-                 JOptionPane.showMessageDialog(this, 
-                         "Error al procesar la postulación: " + ex.getMessage(), 
-                         "Error", 
-                         JOptionPane.ERROR_MESSAGE);
-                 ex.printStackTrace();
-             }
-         }
+        int selectedRow = tableProjects.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un proyecto para postularse.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // El ID ahora es un UUID, pero lo manejamos como String para la API
+        String projectId = tableProjects.getValueAt(selectedRow, 0).toString();
+        String projectName = tableProjects.getValueAt(selectedRow, 3).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Está seguro que desea postularse al proyecto: " + projectName + "?",
+                "Confirmar Postulación",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Llama al método del nuevo repositorio de estudiante
+            boolean success = studentRepository.applyToProject(projectId);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this,
+                        "¡Se ha postulado exitosamente al proyecto!",
+                        "Éxito",
+                        JOptionPane.INFORMATION_MESSAGE);
+                // Podrías actualizar la vista si fuera necesario
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "No se pudo realizar la postulación.\nEs posible que ya esté postulado o hubo un error en el servidor.",
+                        "Error de Postulación",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }//GEN-LAST:event_btnPostularseActionPerformed
 
     private void btnDetallesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetallesActionPerformed

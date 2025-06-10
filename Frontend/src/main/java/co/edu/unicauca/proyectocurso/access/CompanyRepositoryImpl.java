@@ -2,6 +2,7 @@ package co.edu.unicauca.proyectocurso.access;
 
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -9,210 +10,178 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
+/**
+ * Implementación del repositorio de Compañías que se comunica
+ * con el microservicio a través del API Gateway de forma autenticada.
+ */
 public class CompanyRepositoryImpl implements ICompanyRepository {
 
-    private static final String BASE_URL;
-
-    static {
-        String url = "http://localhost:8084/companies";
-        try {
-            Properties props = new Properties();
-            props.load(CompanyRepositoryImpl.class.getClassLoader().getResourceAsStream("config.properties"));
-            String configUrl = props.getProperty("login.api");
-            if (configUrl != null && !configUrl.trim().isEmpty()) {
-                url = configUrl.trim();
-            }
-        } catch (Exception e) {
-            System.err.println("⚠️ No se pudo cargar 'config.properties'. Usando URL por defecto.");
-        }
-        BASE_URL = url;
-    }
-
-    private final HttpClient client;
-    private final Gson gson;
-
-    public CompanyRepositoryImpl() {
-        this.client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-        this.gson = new Gson();
-    }
+    // CORRECCIÓN: Apuntar siempre al API Gateway.
+    private static final String BASE_URL = "http://localhost:8081/companies";
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+            .create();
 
     @Override
     public boolean save(Company company, String username) {
         try {
-            String url = BASE_URL + "/register/" + username;  // ← Ahora usa username
-
-            CompanyDTO dto = new CompanyDTO(
-                    company.getNit(),
-                    company.getName(),
-                    company.getSector(),
-                    company.getContactPhone(),
-                    company.getContactFirstName(),
-                    company.getContactLastName(),
-                    company.getContactPosition()
-            );
-
-            String json = gson.toJson(dto);
-            String response = sendPostRequestJson(url, json);
-
-            if (response != null) {
-                SaveResponse saveResponse = gson.fromJson(response, SaveResponse.class);
-                return saveResponse.message != null && saveResponse.message.contains("registrada");
-            }
-
+            // El endpoint en el backend para registrar una empresa.
+            String url = BASE_URL + "/register/" + username;
+            String json = gson.toJson(company);
+            sendPostRequest(url, json);
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("ERROR: No se pudo guardar la compañía. " + e.getMessage());
+            return false;
         }
-
-        return false;
     }
 
     @Override
     public List<Company> findAll() {
-        String url = BASE_URL + "/all";
-        String response = sendGetRequest(url);
-        List<Company> companies = new ArrayList<>();
-
-        if (response != null) {
-            try {
+        try {
+            String url = BASE_URL + "/all";
+            String responseJson = sendGetRequest(url);
+            if (responseJson != null) {
                 Type listType = new TypeToken<List<Company>>() {}.getType();
-                companies = gson.fromJson(response, listType);
-            } catch (Exception e) {
-                e.printStackTrace();
+                return gson.fromJson(responseJson, listType);
             }
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo obtener la lista de compañías. " + e.getMessage());
         }
-
-        return companies;
+        return new ArrayList<>();
     }
 
     @Override
     public Company findByNIT(String nit) {
-        String url = BASE_URL + "/nit/" + nit;
-        String response = sendGetRequest(url);
-
-        if (response != null && !response.isBlank()) {
-            try {
-                return gson.fromJson(response, Company.class);
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            // Este es el método crucial que estaba fallando.
+            String url = BASE_URL + "/nit/" + nit;
+            String responseJson = sendGetRequest(url);
+            if (responseJson != null) {
+                return gson.fromJson(responseJson, Company.class);
             }
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo encontrar la compañía por NIT. " + e.getMessage());
         }
-
+        // Devuelve null si no se encuentra o hay un error.
         return null;
     }
 
     @Override
     public boolean existsCompanyNIT(String nit) {
-        String url = BASE_URL + "/check-nit/" + nit;
-        String response = sendGetRequest(url);
-
-        if (response != null) {
-            ExistsResponse exists = gson.fromJson(response, ExistsResponse.class);
-            return exists.exists;
+        try {
+            String url = BASE_URL + "/check-nit/" + nit;
+            String responseJson = sendGetRequest(url);
+            if (responseJson != null) {
+                // Suponiendo que el backend devuelve un JSON como {"exists": true}
+                return responseJson.contains("true");
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo verificar la existencia del NIT. " + e.getMessage());
         }
-
         return false;
     }
 
-    private String sendGetRequest(String url) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .timeout(Duration.ofSeconds(10))
-                    .build();
+    // MÉTODOS AUXILIARES UNIFICADOS USANDO HttpURLConnection
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    private String sendGetRequest(String urlString) throws Exception {
+        HttpURLConnection con = (HttpURLConnection) new URL(urlString).openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Accept", "application/json");
 
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                return response.body();
-            } else {
-                System.err.println("❌ Error GET: " + response.statusCode());
+        // CAMBIO CLAVE: Añadir el token de autenticación a TODAS las peticiones.
+        String token = AuthTokenManager.getInstance().getJwtToken();
+        if (token != null && !token.isEmpty()) {
+            con.setRequestProperty("Authorization", "Bearer " + token);
+        }
+
+        int responseCode = con.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            return readResponse(con);
+        } else {
+            System.err.println("GET Request a " + urlString + " falló con código: " + responseCode);
+            return null; // Devolver null si la petición no fue exitosa.
+        }
+    }
+
+// En la clase CompanyRepositoryImpl.java
+
+    private String sendPostRequest(String urlString, String jsonBody) throws Exception {
+
+        // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
+        System.out.println("\n--- DEBUG: Preparando Petición POST ---");
+        System.out.println("URL Destino: " + urlString);
+        System.out.println("Cuerpo JSON a Enviar: " + jsonBody);
+        // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
+
+        HttpURLConnection con = (HttpURLConnection) new URL(urlString).openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Accept", "application/json"); // Es buena práctica añadirlo también
+        con.setDoOutput(true);
+
+        String token = AuthTokenManager.getInstance().getJwtToken();
+        if (token != null && !token.isEmpty()) {
+            // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
+            System.out.println("Token Encontrado. Añadiendo encabezado 'Authorization'.");
+            System.out.println("Token (primeros 30 caracteres): Bearer " + token.substring(0, 30) + "...");
+            // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
+            con.setRequestProperty("Authorization", "Bearer " + token);
+        } else {
+            // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
+            System.err.println("ADVERTENCIA: No se encontró ningún token en AuthTokenManager.");
+            // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
+        }
+
+        try (OutputStream os = con.getOutputStream()) {
+            os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int responseCode = con.getResponseCode();
+
+        // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
+        System.out.println("Código de Respuesta Recibido: " + responseCode);
+        // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
+
+        if (responseCode >= 200 && responseCode < 300) {
+            return readResponse(con);
+        } else {
+            String errorBody = readErrorResponse(con); // Método auxiliar para leer el cuerpo del error
+            System.err.println("Cuerpo del Error: " + errorBody);
+            throw new Exception("POST Request a " + urlString + " falló con código: " + responseCode);
+        }
+    }
+
+    // AÑADE ESTE NUEVO MÉTODO AUXILIAR PARA LEER ERRORES
+    private String readErrorResponse(HttpURLConnection con) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getErrorStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
             }
-
+            return response.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            return "No se pudo leer el cuerpo del error.";
         }
-
-        return null;
     }
 
-    private String sendPostRequestJson(String url, String jsonData) {
-        try {
-            URL apiUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setDoOutput(true);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonData.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
+    // Asegúrate que tu método readResponse también exista
+    private String readResponse(HttpURLConnection con) throws Exception {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
             }
-
-            int code = connection.getResponseCode();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    (code >= 200 && code < 300) ?
-                            connection.getInputStream() :
-                            connection.getErrorStream(),
-                    StandardCharsets.UTF_8
-            ));
-
-            StringBuilder result = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line.trim());
-            }
-
-            return result.toString();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return response.toString();
         }
     }
 
-    // DTO para POST
-    private static class CompanyDTO {
-        private final String nit;
-        private final String name;
-        private final String sector;
-        private final String contactPhone;
-        private final String contactFirstName;
-        private final String contactLastName;
-        private final String contactPosition;
-
-        public CompanyDTO(String nit, String name, String sector, String contactPhone,
-                          String contactFirstName, String contactLastName, String contactPosition) {
-            this.nit = nit;
-            this.name = name;
-            this.sector = sector;
-            this.contactPhone = contactPhone;
-            this.contactFirstName = contactFirstName;
-            this.contactLastName = contactLastName;
-            this.contactPosition = contactPosition;
-        }
-    }
-
-    private static class SaveResponse {
-        private String message;
-    }
-
-    private static class ExistsResponse {
-        private boolean exists;
-    }
 }

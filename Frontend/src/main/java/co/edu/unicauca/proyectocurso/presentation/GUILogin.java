@@ -4,6 +4,10 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
+import co.edu.unicauca.proyectocurso.access.AuthTokenManager;
+import co.edu.unicauca.proyectocurso.access.IStudentRepository;
+import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
+import co.edu.unicauca.proyectocurso.domain.entities.Student;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
@@ -133,8 +137,8 @@ public class GUILogin extends javax.swing.JFrame {
 
             token = obtenerToken(username, password);
             System.out.println("Token obtenido exitosamente"+token);
-            
 
+            AuthTokenManager.getInstance().setJwtToken(token);
             
             // Extraer rol desde Keycloak
             String role = extraerRolDelToken(token);
@@ -464,6 +468,7 @@ private void mostrarGUIEmpresa(String username) {
  * Maneja el login para otros roles (admin, student, coordinator)
  */
 private void manejarOtrosRoles(String role, String username) {
+    AuthTokenManager.getInstance().setJwtToken(this.token);
     this.dispose();
     
     switch (role) {
@@ -474,10 +479,35 @@ private void manejarOtrosRoles(String role, String username) {
             break;
             
         case "student":
+            IStudentRepository studentRepo = new StudentRepositoryImpl();
 
-            JOptionPane.showMessageDialog(this, "Bienvenido, Estudiante: " + username);
-            GUIStudent estudianteGUI = new GUIStudent(username); // Pasar token si es necesario
-            estudianteGUI.setVisible(true);
+            // Intentar obtener el perfil del estudiante desde el backend
+            Student studentProfile = studentRepo.getMyProfile();
+
+            if (studentProfile != null) {
+                // El perfil ya existe, ir a la GUI principal
+                this.dispose();
+                GUIStudent guiStudent = new GUIStudent(studentProfile); // Usar un nuevo constructor
+                guiStudent.setVisible(true);
+            } else {
+                // El perfil no existe (el backend devolvió 404), hay que crearlo
+                JOptionPane.showMessageDialog(this,
+                        "Bienvenido. Por favor, completa tu perfil para continuar.",
+                        "Completar Perfil", JOptionPane.INFORMATION_MESSAGE);
+
+                // Pedir el programa al usuario
+                String program = JOptionPane.showInputDialog(this, "Ingresa tu programa académico:");
+                if (program != null && !program.trim().isEmpty()) {
+                    Student newProfile = studentRepo.createOrUpdateProfile(program);
+                    if (newProfile != null) {
+                        this.dispose();
+                        GUIStudent guiStudent = new GUIStudent(studentProfile);
+                        guiStudent.setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se pudo crear tu perfil.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
             break;
             
         case "coordinator":

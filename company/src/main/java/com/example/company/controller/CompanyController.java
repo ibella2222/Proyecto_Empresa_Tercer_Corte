@@ -1,34 +1,30 @@
 package com.example.company.controller;
-import java.util.Optional;
-import com.example.company.service.CompanyService;
+
 import com.example.company.dto.CompanyDTO;
 import com.example.company.entity.Company;
 import com.example.company.repository.CompanyRepository;
-import com.example.company.config.RabbitMQConfig;
+import com.example.company.service.CompanyService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/companies")
 public class CompanyController {
 
     private final CompanyService companyService;
-    private final RabbitTemplate rabbitTemplate;
+    private final CompanyRepository companyRepository; // Inyección directa ya estaba
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
-    @Autowired
-    private CompanyRepository companyRepository;
 
-    public CompanyController(CompanyService companyService,
-                             RabbitTemplate rabbitTemplate) {
+    // Constructor unificado para las dependencias
+    public CompanyController(CompanyService companyService, CompanyRepository companyRepository) {
         this.companyService = companyService;
-        this.rabbitTemplate = rabbitTemplate;
+        this.companyRepository = companyRepository;
     }
 
     @PostMapping("/register/{username}")
@@ -36,7 +32,7 @@ public class CompanyController {
             @PathVariable String username,
             @Valid @RequestBody CompanyDTO companyDTO) {
 
-        Company saved = companyService.registerCompany(
+        companyService.registerCompany(
                 username,
                 companyDTO.getNit(),
                 companyDTO.getName(),
@@ -47,51 +43,51 @@ public class CompanyController {
                 companyDTO.getContactPosition()
         );
 
-
-
-
-        return ResponseEntity.ok(Map.of(
-                "message", "Empresa registrada correctamente"
-        ));
+        return ResponseEntity.ok(Map.of("message", "Empresa registrada correctamente"));
     }
+
     @GetMapping("/user/{username}")
     public ResponseEntity<?> getCompanyByUsername(@PathVariable String username) {
-        try {
-            Optional<Company> companyOpt = companyService.findByUsername(username);
-
-            if (companyOpt.isPresent()) {
-                Company company = companyOpt.get();
-                logger.info("Empresa encontrada para usuario: {}", username);
-                return ResponseEntity.ok(company);
-            } else {
-                logger.warn("No se encontró empresa para el usuario: {}", username);
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar empresa para usuario {}: {}", username, e.getMessage(), e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error interno del servidor"));
-        }
+        return companyService.findByUsername(username)
+                .map(this::convertToDto) // Convertir a DTO
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/check-nit/{nit}")
     public ResponseEntity<?> checkNitExists(@PathVariable String nit) {
-        logger.info("Verificando existencia de empresa con NIT: {}", nit);
-        try {
-            boolean exists = companyRepository.existsByNit(nit);
-            logger.info("Resultado de verificación de NIT {}: {}", nit, exists);
-            return ResponseEntity.ok(Map.of("exists", exists));
-        } catch (Exception e) {
-            logger.error("Error al verificar NIT: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "error", "Error al verificar NIT: " + e.getMessage()
-            ));
-        }
+        boolean exists = companyRepository.existsByNit(nit);
+        return ResponseEntity.ok(Map.of("exists", exists));
     }
+
+    /**
+     * CORRECCIÓN: Este método ahora devuelve un CompanyDTO.
+     * Es el endpoint que tu cliente necesita para obtener los detalles de la empresa.
+     */
     @GetMapping("/nit/{nit}")
-    public ResponseEntity<Company> findByNit(@PathVariable String nit) {
-        Optional<Company> company = companyService.findByNit(nit);
-        return company.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CompanyDTO> findByNit(@PathVariable String nit) {
+        Optional<Company> companyOptional = companyService.findByNit(nit);
+
+        // Mapea el Optional<Company> a un Optional<CompanyDTO>
+        return companyOptional.map(this::convertToDto)
+                .map(ResponseEntity::ok) // Si el DTO existe, devuelve 200 OK
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Si no, devuelve 404
+    }
+
+    /**
+     * Método auxiliar para convertir la entidad Company a un CompanyDTO.
+     * Esto evita exponer la entidad interna en la API.
+     */
+    private CompanyDTO convertToDto(Company company) {
+        return new CompanyDTO(
+                company.getUsername(),
+                company.getNit(),
+                company.getName(),
+                company.getSector(),
+                company.getContactPhone(),
+                company.getContactFirstName(),
+                company.getContactLastName(),
+                company.getContactPosition()
+        );
     }
 }

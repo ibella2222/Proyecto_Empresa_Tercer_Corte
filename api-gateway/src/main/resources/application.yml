@@ -4,33 +4,39 @@ server:
 spring:
   application:
     name: api-gateway
+
   cloud:
     gateway:
       routes:
-        - id: company-service
+        # CORRECCIÓN 1: ID de ruta único y descriptivo
+        - id: project-service-route
           uri: http://localhost:8084
           predicates:
             - Path=/projects/**
-          filters:
-            - StripPrefix=1
-        - id: company-service
+          # CORRECCIÓN 2: Se elimina StripPrefix
+          filters: []
+
+        # CORRECCIÓN 1: ID de ruta único y descriptivo
+        - id: company-service-route
           uri: http://localhost:8084
           predicates:
             - Path=/companies/**
-          filters:
-            - StripPrefix=1
-        - id: student-service
+          # CORRECCIÓN 2: Se elimina StripPrefix
+          filters: []
+
+        - id: student-service-route
           uri: http://localhost:8085
           predicates:
             - Path=/students/**
+          # Esta ya estaba correcta (sin StripPrefix)
           filters: []
 
-        - id: coordinator-service
+        - id: coordinator-service-route
           uri: http://localhost:8086
           predicates:
             - Path=/coordinators/**
-          filters:
-            - StripPrefix=1
+          # CORRECCIÓN 2: Se elimina StripPrefix
+          filters: []
 
   security:
     oauth2:

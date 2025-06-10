@@ -47,4 +47,8 @@ public interface IStudentRepository {
      * @return true si existe, false en caso contrario.
      */
     boolean studentExists(String username);
+    Student getMyProfile();
+    boolean applyToProject(String projectId);
+    Student createOrUpdateProfile(String program);
+
 }

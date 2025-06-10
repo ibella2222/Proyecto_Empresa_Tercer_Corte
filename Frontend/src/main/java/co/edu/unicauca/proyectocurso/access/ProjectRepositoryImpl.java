@@ -26,6 +26,9 @@ public class ProjectRepositoryImpl implements IProjectRepository {
 
     private static final String BASE_URL;
     private final ICompanyRepository companyRepository = new CompanyRepositoryImpl();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+            .create();
 
     static {
         String url = "http://localhost:8084/projects"; // Valor por defecto
@@ -42,9 +45,7 @@ public class ProjectRepositoryImpl implements IProjectRepository {
         BASE_URL = url;
     }
 
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
-            .create();
+
 
     @Override
     public boolean save(Project project, String nitEmpresa) {
@@ -144,7 +145,11 @@ public class ProjectRepositoryImpl implements IProjectRepository {
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setRequestMethod("GET");
         con.setRequestProperty("Accept", "application/json");
-
+        // Adjuntar el token de autorización si está disponible
+        String token = AuthTokenManager.getInstance().getJwtToken();
+        if (token != null && !token.isEmpty()) {
+            con.setRequestProperty("Authorization", "Bearer " + token);
+        }
         if (con.getResponseCode() >= 200 && con.getResponseCode() < 300) {
             BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder response = new StringBuilder();
@@ -163,6 +168,12 @@ public class ProjectRepositoryImpl implements IProjectRepository {
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
 
+        // Adjuntar el token de autorización si está disponible
+        String token = AuthTokenManager.getInstance().getJwtToken();
+        if (token != null && !token.isEmpty()) {
+            con.setRequestProperty("Authorization", "Bearer " + token);
+        }
+
         try (OutputStream os = con.getOutputStream()) {
             os.write(jsonData.getBytes(StandardCharsets.UTF_8));
         }
@@ -178,4 +189,6 @@ public class ProjectRepositoryImpl implements IProjectRepository {
             return null;
         }
     }
+
+
 }
