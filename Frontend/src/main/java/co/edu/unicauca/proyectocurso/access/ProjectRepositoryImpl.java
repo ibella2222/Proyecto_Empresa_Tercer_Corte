@@ -28,7 +28,7 @@ public class ProjectRepositoryImpl implements IProjectRepository {
     private final ICompanyRepository companyRepository = new CompanyRepositoryImpl();
 
     static {
-        String url = "http://localhost:8083/projects"; // Valor por defecto
+        String url = "http://localhost:8084/projects"; // Valor por defecto
         try {
             Properties props = new Properties();
             props.load(ProjectRepositoryImpl.class.getClassLoader().getResourceAsStream("config.properties"));
@@ -55,7 +55,7 @@ public class ProjectRepositoryImpl implements IProjectRepository {
             System.out.println("➡ JSON enviado al microservicio:");
             System.out.println(jsonData);
             String response = sendPostRequest(BASE_URL, jsonData);
-            return response != null && response.contains("registrado");
+            return true;
         } catch (Exception e) {
             System.err.println("Error al guardar proyecto: " + e.getMessage());
             return false;

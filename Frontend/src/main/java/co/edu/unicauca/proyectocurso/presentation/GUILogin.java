@@ -393,7 +393,7 @@ private void procesarLoginConKeycloak(String role, String username, String passw
 private boolean verificarPerfilEmpresa(String username) throws Exception {
     try {
         // Intentar obtener la empresa por username desde el microservicio
-        String url = "http://localhost:8083/companies/user/" + username;
+        String url = "http://localhost:8084/companies/user/" + username;
         String response = llamarServicio(token, url);
         
         if (response != null && !response.trim().isEmpty()) {
@@ -438,7 +438,7 @@ private boolean esPerfilCompleto(Company company) {
  */
 private void mostrarGUIEmpresa(String username) {
     try {
-        String url = "http://localhost:8083/companies/user/" + username;
+        String url = "http://localhost:8084/companies/user/" + username;
         String response = llamarServicio(token, url);
         
         ObjectMapper mapper = new ObjectMapper();

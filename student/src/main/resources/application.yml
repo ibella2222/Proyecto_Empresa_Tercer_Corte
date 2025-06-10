@@ -38,4 +38,4 @@ logging:
 
 # En el application.yml del microservicio de estudiante
 keycloak:
-  client-id: desktop # El client ID que viste en el token ('azp')
+  client-id: desktop # El client ID que viste en el token ('azp')

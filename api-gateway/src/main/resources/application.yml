@@ -13,7 +13,12 @@ spring:
             - Path=/projects/**
           filters:
             - StripPrefix=1
-
+        - id: company-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/companies/**
+          filters:
+            - StripPrefix=1
         - id: student-service
           uri: http://localhost:8085
           predicates:

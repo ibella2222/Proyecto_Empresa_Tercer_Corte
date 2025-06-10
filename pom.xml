@@ -19,6 +19,8 @@
         <module>student</module>
         <module>login</module>
         <module>Frontend</module>
+        <module>api-gateway</module>
+
     </modules>
 
     <properties>

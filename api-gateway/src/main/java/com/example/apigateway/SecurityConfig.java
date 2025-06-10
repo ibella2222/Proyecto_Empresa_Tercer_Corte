@@ -16,6 +16,7 @@ public class SecurityConfig {
                         .pathMatchers("/students/**").hasRole("student")
                         .pathMatchers("/projects/**").hasRole("company")
                         .pathMatchers("/coordinators/**").hasRole("coordinator")
+                        .pathMatchers("/companies/**").hasRole("company")
 
                         // Cualquier otra ruta requiere autenticación
                         .anyExchange().authenticated()

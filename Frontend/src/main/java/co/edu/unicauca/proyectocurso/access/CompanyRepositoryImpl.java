@@ -25,7 +25,7 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
     private static final String BASE_URL;
 
     static {
-        String url = "http://localhost:8083/companies";
+        String url = "http://localhost:8084/companies";
         try {
             Properties props = new Properties();
             props.load(CompanyRepositoryImpl.class.getClassLoader().getResourceAsStream("config.properties"));

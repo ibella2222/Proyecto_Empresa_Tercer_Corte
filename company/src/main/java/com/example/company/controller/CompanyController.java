@@ -3,11 +3,13 @@ import java.util.Optional;
 import com.example.company.service.CompanyService;
 import com.example.company.dto.CompanyDTO;
 import com.example.company.entity.Company;
+import com.example.company.repository.CompanyRepository;
 import com.example.company.config.RabbitMQConfig;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,8 @@ public class CompanyController {
     private final CompanyService companyService;
     private final RabbitTemplate rabbitTemplate;
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
+    @Autowired
+    private CompanyRepository companyRepository;
 
     public CompanyController(CompanyService companyService,
                              RabbitTemplate rabbitTemplate) {
@@ -67,6 +71,21 @@ public class CompanyController {
             logger.error("Error al buscar empresa para usuario {}: {}", username, e.getMessage(), e);
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
+    @GetMapping("/check-nit/{nit}")
+    public ResponseEntity<?> checkNitExists(@PathVariable String nit) {
+        logger.info("Verificando existencia de empresa con NIT: {}", nit);
+        try {
+            boolean exists = companyRepository.existsByNit(nit);
+            logger.info("Resultado de verificación de NIT {}: {}", nit, exists);
+            return ResponseEntity.ok(Map.of("exists", exists));
+        } catch (Exception e) {
+            logger.error("Error al verificar NIT: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Error al verificar NIT: " + e.getMessage()
+            ));
         }
     }
 }

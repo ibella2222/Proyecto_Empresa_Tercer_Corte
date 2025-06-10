@@ -25,7 +25,7 @@ import java.util.Properties;
  * @author Lenovo pc
  */
 public class ProjectStatsRepositoryImpl implements IProjectStatsRepository{
-    private static final String BASE_URL = "http://localhost:8082/stats";
+    private static final String BASE_URL = "http://localhost:8084/stats";
 
 
     private final Gson gson = new GsonBuilder()
