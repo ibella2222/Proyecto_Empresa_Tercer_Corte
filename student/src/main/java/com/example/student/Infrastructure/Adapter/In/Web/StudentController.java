@@ -78,20 +78,36 @@ public class StudentController {
     }
 
     // infrastructure/adapter/in/web/StudentController.java
+    // ... (resto de la clase StudentController)
+
     @PostMapping("/me/profile")
     @PreAuthorize("hasRole('student')")
-    public ResponseEntity<StudentDTO> createOrUpdateMyProfile(@AuthenticationPrincipal Jwt jwt, @RequestBody UpdateProfileRequestDTO profileRequest) {
+    public ResponseEntity<StudentDTO> createOrUpdateMyProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody UpdateProfileRequestDTO profileRequest) { // Usamos el DTO simplificado
+
+        // 1. Extraer todos los datos necesarios del token JWT
         String studentId = jwt.getSubject();
         String username = jwt.getClaimAsString("preferred_username");
 
+        // --- INICIO DE LA REFACTORIZACIÓN ---
+        // Extraemos nombre y apellido de los 'claims' estándar de OpenID Connect
+        String firstName = jwt.getClaimAsString("given_name");
+        String lastName = jwt.getClaimAsString("family_name");
+        // --- FIN DE LA REFACTORIZACIÓN ---
+
+        // 2. Llamar al caso de uso con todos los datos (del token y del body)
         Student updatedStudent = studentUseCase.createOrUpdateProfile(
                 studentId,
                 username,
-                profileRequest.getFirstName(),
-                profileRequest.getLastName(),
-                profileRequest.getProgram()
+                firstName,  // Dato del token
+                lastName,   // Dato del token
+                profileRequest.getProgram() // Dato del body
         );
 
+        // 3. Devolver la respuesta
         return ResponseEntity.ok(toDto(updatedStudent));
     }
+
+// ... (resto de la clase)
 }

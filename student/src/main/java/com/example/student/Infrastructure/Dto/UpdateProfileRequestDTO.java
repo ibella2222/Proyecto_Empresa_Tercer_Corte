@@ -1,16 +1,16 @@
 package com.example.student.Infrastructure.Dto;
 
-// DTO para la solicitud de actualización de perfil
+// El DTO ahora solo pide la información que no podemos obtener del token.
 public class UpdateProfileRequestDTO {
-    private String firstName;
-    private String lastName;
-    private String program;
 
-    // Getters y Setters...
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getProgram() { return program; }
-    public void setProgram(String program) { this.program = program; }
+    private String program; // El único campo que el usuario debe proporcionar
+
+    // Getters y Setters
+    public String getProgram() {
+        return program;
+    }
+
+    public void setProgram(String program) {
+        this.program = program;
+    }
 }
