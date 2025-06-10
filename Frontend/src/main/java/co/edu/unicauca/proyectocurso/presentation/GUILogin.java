@@ -27,8 +27,8 @@ import javax.swing.JPasswordField;
  */
 public class GUILogin extends javax.swing.JFrame {
 
-        private String token;
-
+    private String token;
+    final String API_GATEWAY_URL = "http://localhost:8081";
 
     public GUILogin() {
         initComponents();
@@ -474,6 +474,7 @@ private void manejarOtrosRoles(String role, String username) {
             break;
             
         case "student":
+
             JOptionPane.showMessageDialog(this, "Bienvenido, Estudiante: " + username);
             GUIStudent estudianteGUI = new GUIStudent(username); // Pasar token si es necesario
             estudianteGUI.setVisible(true);

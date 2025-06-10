@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
         <module name="company" />
+        <module name="ProyectoEmpresa" />
         <module name="login" />
         <module name="student" />
         <module name="coordination" />
@@ -16,7 +17,6 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="project" target="17" />
-      <module name="ProyectoEmpresa" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

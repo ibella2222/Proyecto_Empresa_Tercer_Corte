@@ -22,6 +22,11 @@ spring:
       ddl-auto: update # 'update' para desarrollo, 'validate' o 'none' para producción
     show-sql: true
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   # --- Configuración de Seguridad como Resource Server ---
   # Esto le dice a tu microservicio cómo validar los tokens JWT
   security:

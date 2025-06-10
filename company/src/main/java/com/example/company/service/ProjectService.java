@@ -1,5 +1,6 @@
 package com.example.company.service;
 
+import com.example.company.config.RabbitMQConfig;
 import com.example.company.dto.ProjectDTO;
 import com.example.company.entity.Project;
 import com.example.company.repository.ProjectRepository;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.transaction.Transactional;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -37,12 +39,8 @@ public class ProjectService {
         return repository.findById(id);
     }
 
+    @Transactional // Buena práctica para asegurar que el guardado y el envío sean atómicos
     public Project create(Project project) {
-        System.out.println("name: " + project.getName());
-        System.out.println("description: " + project.getDescription());
-        System.out.println("date: " + project.getDate());
-        System.out.println("companyNIT: " + project.getCompanyNIT());
-
         if (project.getName() == null || project.getDescription() == null ||
                 project.getDate() == null || project.getCompanyNIT() == null) {
             throw new IllegalArgumentException("Todos los campos obligatorios deben estar diligenciados.");
@@ -51,17 +49,29 @@ public class ProjectService {
         if (project.getId() == null) {
             project.setId(UUID.randomUUID());
         }
-
         project.setState("RECEIVED");
 
+        // 1. Guarda la entidad en la base de datos
         Project saved = repository.save(project);
+
+        // 2. ⭐ LA CORRECCIÓN: Convierte la entidad guardada a un DTO
+        ProjectDTO projectDTO = convertToDTO(saved);
+
+        // 3. Envía el DTO a RabbitMQ
         try {
-            rabbitTemplate.convertAndSend("company.exchange", "company.project.routingkey", saved);
+            System.out.println("🚀 Publicando nuevo proyecto DTO en la cola...");
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE,                // Nombre del Exchange
+                    RabbitMQConfig.PROJECT_ROUTING_KEY,     // Routing Key
+                    projectDTO                              // <-- ¡AHORA ENVÍAS EL DTO!
+            );
+            System.out.println("✅ Proyecto DTO publicado exitosamente.");
         } catch (Exception e) {
             System.err.println("❌ Error al enviar el proyecto por RabbitMQ: " + e.getMessage());
+            // Considera cómo manejar este error. ¿La creación debería fallar?
         }
 
-        return saved;
+        return saved; // Devuelves la entidad como antes
     }
 
     public Project update(Project project) {
@@ -102,6 +112,22 @@ public class ProjectService {
 
         repository.deleteById(id);
         return true;
+    }
+    private ProjectDTO convertToDTO(Project project) {
+        ProjectDTO dto = new ProjectDTO();
+        dto.setId(project.getId());
+        dto.setName(project.getName());
+        dto.setSummary(project.getSummary());
+        dto.setObjectives(project.getObjectives());
+        dto.setDescription(project.getDescription());
+        dto.setDate(project.getDate());
+        dto.setFinalizationDate(project.getFinalizationDate());
+        dto.setState(project.getState());
+        dto.setCompanyNIT(project.getCompanyNIT());
+        dto.setJustification(project.getJustification());
+        dto.setBudget(project.getBudget());
+        dto.setMaxMonths(project.getMaxMonths());
+        return dto;
     }
 
     public List<Project> findByCompanyNIT(String nit) {

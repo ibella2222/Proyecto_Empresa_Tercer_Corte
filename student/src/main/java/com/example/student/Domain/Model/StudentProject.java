@@ -1,45 +1,36 @@
-package com.example.company.entity;
+package com.example.student.Domain.Model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
-@Table(name = "projects")
+@Table(name = "available_projects")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Project implements Serializable {
+public class StudentProject implements Serializable {
 
-    
     @Id
-    @GeneratedValue
-    private UUID id;
+    private UUID id; // Usamos el ID que viene del DTO
 
     private String name;
     private String summary;
     private String objectives;
     private String description;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate date;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate finalizationDate;
-
-    private String state;
+    private String state; // Estado local, ej: "AVAILABLE"
     private String companyNIT;
     private String justification;
-
     private float budget;
     private int maxMonths;
+
+    // No guardaremos los campos 'comments' ni 'students' en la base de datos por ahora,
+    // a menos que la lógica de negocio lo requiera. El DTO los recibe, pero aquí los ignoramos.
 
     public UUID getId() {
         return id;
