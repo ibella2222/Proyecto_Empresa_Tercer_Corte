@@ -5,7 +5,9 @@
 package co.edu.unicauca.proyectocurso.presentation;
 
 import co.edu.unicauca.proyectocurso.access.IProjectStatsRepository;
+import co.edu.unicauca.proyectocurso.access.IStatsRepository;
 import co.edu.unicauca.proyectocurso.access.ProjectStatsRepositoryImpl;
+import co.edu.unicauca.proyectocurso.access.StatsRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.ProjectState;
 import co.edu.unicauca.proyectocurso.domain.entities.ProjectStats;
 import co.edu.unicauca.proyectocurso.domain.services.ProjectStatsService;
@@ -13,6 +15,8 @@ import java.awt.BorderLayout;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.jfree.chart.*;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.CategoryDataset;
@@ -24,29 +28,40 @@ import org.jfree.data.category.DefaultCategoryDataset;
  * @author Lenovo pc
  */
 public class GUICoordEstadisticas extends javax.swing.JFrame {
-    
-    private final IProjectStatsRepository repo = new ProjectStatsRepositoryImpl();
-    private final ProjectStatsService service = new ProjectStatsService(repo);
+
+    // --- ATRIBUTO CORREGIDO: Usamos el repositorio que habla con la API ---
+    private final IStatsRepository statsRepository = new StatsRepositoryImpl();
+    private List<ProjectStats> allStats; // Lista para cachear los datos del backend
+
 
     /**
      * Creates new form GUICoordEstadisticas
      */
     public GUICoordEstadisticas() {
-         initComponents();
+        initComponents();
         comboPeriodos.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "2024-1", "2024-2", "2025-1" }));
-         
+
+        cargarEstadisticasCompletas();
+
+        // Muestra el gráfico inicial
+        if (this.allStats != null) {
+            mostrarGrafico((String) comboPeriodos.getSelectedItem());
+        }
     }
-    
-    
-     private void mostrarGrafico(String periodo) {
+    private void cargarEstadisticasCompletas() {
+        // Llama al repositorio para obtener todos los datos una sola vez
+        this.allStats = statsRepository.findAll();
+    }
+
+    private void mostrarGrafico(String periodo) {
         CategoryDataset dataset = crearDatasetPorPeriodo(periodo);
         JFreeChart chart = ChartFactory.createBarChart(
-            "Proyectos - Periodo " + periodo,
-            "Estado",
-            "Cantidad",
-            dataset,
-            PlotOrientation.VERTICAL,
-            true, true, false
+                "Proyectos - Periodo " + periodo,
+                "Estado",
+                "Cantidad",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true, true, false
         );
 
         ChartPanel chartPanel = new ChartPanel(chart);
@@ -56,13 +71,18 @@ public class GUICoordEstadisticas extends javax.swing.JFrame {
         panelGrafica.setLayout(new BorderLayout());
         panelGrafica.add(chartPanel, BorderLayout.CENTER);
         panelGrafica.validate();
+        panelGrafica.repaint();
     }
 
     private CategoryDataset crearDatasetPorPeriodo(String periodo) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-        LocalDate inicio = null;
-        LocalDate fin = null;
+        if (this.allStats == null) {
+            return dataset;
+        }
+
+        LocalDate inicio;
+        LocalDate fin;
 
         switch (periodo) {
             case "2024-1":
@@ -78,22 +98,18 @@ public class GUICoordEstadisticas extends javax.swing.JFrame {
                 fin = LocalDate.of(2025, 6, 23);
                 break;
             default:
-                return dataset; // Si el período no es válido, devuelve dataset vacío
+                return dataset;
         }
 
-        List<ProjectStats> statsFiltrados = service.findByDateRange(inicio, fin);
+        // --- LA CORRECCIÓN CLAVE ---
+        // Se usa .getChangeDate() para coincidir con la definición de ProjectStats.java
+        List<ProjectStats> statsFiltrados = this.allStats.stream()
+                .filter(stat -> !stat.getChangeDate().isBefore(inicio) && !stat.getChangeDate().isAfter(fin))
+                .collect(Collectors.toList());
 
-        long aprobados = statsFiltrados.stream()
-                .filter(stat -> stat.getState() == ProjectState.ACCEPTED)
-                .count();
-
-        long rechazados = statsFiltrados.stream()
-                .filter(stat -> stat.getState() == ProjectState.REJECTED)
-                .count();
-
-        long pendientes = statsFiltrados.stream()
-                .filter(stat -> stat.getState() == ProjectState.RECEIVED)
-                .count();
+        long aprobados = statsFiltrados.stream().filter(stat -> stat.getState() == ProjectState.ACCEPTED).count();
+        long rechazados = statsFiltrados.stream().filter(stat -> stat.getState() == ProjectState.REJECTED).count();
+        long pendientes = statsFiltrados.stream().filter(stat -> stat.getState() == ProjectState.RECEIVED).count();
 
         dataset.addValue(aprobados, "Aprobados", periodo);
         dataset.addValue(rechazados, "Rechazados", periodo);

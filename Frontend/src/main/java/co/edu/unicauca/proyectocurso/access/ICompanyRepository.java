@@ -32,6 +32,7 @@ public interface ICompanyRepository {
      * @return Objeto Company si existe, null si no
      */
     Company findByNIT(String nit);
+    Company findByUsername(String username);
 
 
 

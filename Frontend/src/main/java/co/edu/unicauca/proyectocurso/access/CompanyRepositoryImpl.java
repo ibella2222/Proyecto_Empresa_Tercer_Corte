@@ -42,6 +42,28 @@ public class CompanyRepositoryImpl implements ICompanyRepository {
         }
     }
 
+    // En la clase CompanyRepositoryImpl.java
+
+    @Override
+    public Company findByUsername(String username) {
+        try {
+            // Construye la URL correcta usando la BASE_URL
+            String url = BASE_URL + "/user/" + username;
+
+            // Llama al método auxiliar que ya sabe cómo enviar el token
+            String responseJson = sendGetRequest(url);
+
+            // Si la respuesta no es null (es decir, no fue un 404), la convierte a objeto
+            if (responseJson != null) {
+                return gson.fromJson(responseJson, Company.class);
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: No se pudo encontrar la compañía por username. " + e.getMessage());
+        }
+        // Devuelve null si no se encuentra o si ocurre cualquier error
+        return null;
+    }
+
     @Override
     public List<Company> findAll() {
         try {

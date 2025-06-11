@@ -1,0 +1,21 @@
+# --- Paso 1: Usar una Imagen Base Oficial ---
+# Usamos una imagen de OpenJDK 14 para que coincida con la versión de compilación
+# de tu proyecto, asegurando la máxima compatibilidad.
+FROM openjdk:14-jdk-slim
+
+# --- Paso 2: Establecer un Directorio de Trabajo ---
+# Creamos y nos movemos a un directorio llamado /app dentro del contenedor.
+WORKDIR /app
+
+# --- Paso 3: Copiar el Archivo JAR ---
+# Copiamos el .jar compilado del microservicio de coordinador desde la carpeta 'target'
+# y lo renombramos a 'app.jar'.
+COPY target/coordination-1.0.0.jar app.jar
+
+# --- Paso 4: Exponer el Puerto ---
+# Le decimos a Docker que este contenedor escuchará peticiones en el puerto 8086.
+EXPOSE 8086
+
+# --- Paso 5: Definir el Comando de Arranque ---
+# El comando para iniciar la aplicación del servicio de coordinador.
+ENTRYPOINT ["java", "-jar", "app.jar"]

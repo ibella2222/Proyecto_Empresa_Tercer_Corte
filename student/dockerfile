@@ -1,0 +1,25 @@
+# --- Paso 1: Usar una Imagen Base Oficial ---
+# Empezamos con una imagen base de OpenJDK 17 que es ligera y segura.
+# 'slim' significa que solo incluye lo esencial para ejecutar Java.
+FROM openjdk:17-jdk-slim
+
+# --- Paso 2: Establecer un Directorio de Trabajo ---
+# Creamos y nos movemos a un directorio llamado /app dentro del contenedor.
+# Todas las siguientes acciones ocurrirán dentro de esta carpeta.
+WORKDIR /app
+
+# --- Paso 3: Copiar el Archivo JAR ---
+# Copiamos el archivo .jar compilado de tu proyecto (que estará en la carpeta 'target')
+# al directorio /app del contenedor y lo renombramos a 'app.jar' para simplicidad.
+# Asegúrate de que el nombre del archivo original sea correcto.
+COPY target/student-1.0.0.jar app.jar
+
+# --- Paso 4: Exponer el Puerto ---
+# Le decimos a Docker que este contenedor escuchará peticiones en el puerto 8085.
+# Esto no publica el puerto a tu máquina, solo lo "abre" dentro del contenedor.
+EXPOSE 8085
+
+# --- Paso 5: Definir el Comando de Arranque ---
+# Este es el comando que se ejecutará cuando el contenedor inicie.
+# Es el equivalente a ejecutar 'java -jar app.jar' en tu terminal.
+ENTRYPOINT ["java", "-jar", "app.jar"]

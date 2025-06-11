@@ -1,0 +1,119 @@
+# Versión de la sintaxis de Docker Compose
+version: '3.8'
+
+# Definición de todos los servicios (contenedores) de la aplicación
+services:
+
+  # --- 1. KEYCLOAK: Servicio de Autenticación y Autorización ---
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak
+    ports:
+      # Mapea el puerto 8080 del contenedor al puerto 8080 de tu PC
+      - "8080:8080"
+    environment:
+      # Credenciales para el usuario administrador inicial de Keycloak
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: start-dev # Comando para iniciar Keycloak en modo desarrollo
+    networks:
+      - microservices-net # Conecta este servicio a nuestra red compartida
+
+  # --- 2. RABBITMQ: Sistema de Mensajería para Colas ---
+  rabbitmq:
+    image: rabbitmq:3.12-management # Usamos la imagen que incluye la interfaz web de gestión
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"  # Puerto estándar de AMQP para que se conecten los servicios
+      - "15672:15672" # Puerto para acceder a la interfaz web de gestión
+    networks:
+      - microservices-net
+
+  # --- 3. POSTGRESQL: Base de Datos para el Coordinador ---
+  coordinationdb:
+    image: postgres:15
+    container_name: coordinationdb
+    ports:
+      # Mapeamos al 5433 en el host para evitar conflictos si ya tienes Postgres en el 5432
+      - "5433:5432"
+    environment:
+      # Credenciales para la base de datos
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=coordinationdb
+    networks:
+      - microservices-net
+
+  # --- 4. API GATEWAY: El Punto de Entrada ---
+  api-gateway:
+    # Construye la imagen usando el Dockerfile en la carpeta ./api-gateway
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8081:8081"
+    environment:
+      # --- INICIO DE LA CORRECCIÓN ---
+      # Le decimos al Gateway que el emisor válido es el que está en el host de Docker.
+      # Esto hará que el 'iss' del token ("...localhost:8080...") coincida con lo que el Gateway espera.
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/sistema
+      # --- FIN DE LA CORRECCIÓN ---
+    depends_on:
+      # Se asegura de que Keycloak arranque antes de que el gateway intente conectarse
+      - keycloak
+    networks:
+      - microservices-net
+
+  # --- 5. COMPANY MICROSERVICE ---
+  company-service:
+    build: ./company # Asumiendo que la carpeta se llama 'company' como en el pom.xml
+    container_name: company-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/sistema
+      # IMPORTANTE: Usamos el nombre del servicio 'rabbitmq'
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - keycloak
+      - rabbitmq
+    networks:
+      - microservices-net
+
+  # --- 6. STUDENT MICROSERVICE ---
+  student-service:
+    build: ./student # Asumiendo que la carpeta se llama 'student'
+    container_name: student-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/sistema
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - keycloak
+      - rabbitmq
+    networks:
+      - microservices-net
+
+  # --- 7. COORDINATOR MICROSERVICE ---
+  coordinator-service:
+    build: ./coordination # Asumiendo que la carpeta se llama 'coordination'
+    container_name: coordinator-service
+    ports:
+      - "8086:8086"
+    environment:
+      # IMPORTANTE: La URL de la BD ahora apunta al nombre del servicio 'coordinationdb'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://coordinationdb:5432/coordinationdb
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/sistema
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - coordinationdb # El coordinador depende de que su BD esté lista
+    networks:
+      - microservices-net
+
+# --- La Red Compartida ---
+# Todos los contenedores se conectarán a esta red para poder comunicarse por sus nombres.
+networks:
+  microservices-net:
+    driver: bridge

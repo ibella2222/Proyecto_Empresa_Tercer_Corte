@@ -4,13 +4,10 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
-import co.edu.unicauca.proyectocurso.access.AuthTokenManager;
-import co.edu.unicauca.proyectocurso.access.IStudentRepository;
-import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
+import co.edu.unicauca.proyectocurso.access.*;
 import co.edu.unicauca.proyectocurso.domain.entities.Student;
 import org.json.JSONObject;
 import org.json.JSONArray;
-import co.edu.unicauca.proyectocurso.access.CompanyRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
 import co.edu.unicauca.proyectocurso.domain.services.CompanyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +29,9 @@ import javax.swing.JPasswordField;
 public class GUILogin extends javax.swing.JFrame {
 
     private String token;
+    // Primero, asegúrate de tener una instancia del repositorio como atributo
+    private final ICompanyRepository companyRepository = new CompanyRepositoryImpl();
+
     final String API_GATEWAY_URL = "http://localhost:8081";
 
     public GUILogin() {
@@ -395,31 +395,16 @@ private void procesarLoginConKeycloak(String role, String username, String passw
  * @return true si el perfil está completo, false si necesita completarlo
  */
 private boolean verificarPerfilEmpresa(String username) throws Exception {
-    try {
-        // Intentar obtener la empresa por username desde el microservicio
-        String url = "http://localhost:8084/companies/user/" + username;
-        String response = llamarServicio(token, url);
-        
-        if (response != null && !response.trim().isEmpty()) {
-            // Parsear la respuesta para verificar si tiene todos los campos necesarios
-            ObjectMapper mapper = new ObjectMapper();
-            Company company = mapper.readValue(response, Company.class);
-            
-            // Verificar si los campos críticos están completos
-            return esPerfilCompleto(company);
-        } else {
-            // Si no hay respuesta, la empresa no existe
-            return false;
-        }
-        
-    } catch (IOException e) {
-        // Si es error 404 (Not Found), significa que la empresa no existe aún
-        if (e.getMessage().contains("404") || e.getMessage().contains("Not Found")) {
-            System.out.println("Empresa no encontrada para usuario: " + username);
-            return false;
-        }
-        // Para otros errores, relanzar la excepción
-        throw e;
+    // Llamamos al método del repositorio que acabamos de crear.
+    Company company = companyRepository.findByUsername(username);
+
+    // La lógica es simple: si el objeto no es null, el perfil existe.
+    if (company != null) {
+        System.out.println("Perfil de empresa encontrado para usuario: " + username);
+        return esPerfilCompleto(company);
+    } else {
+        System.out.println("Empresa no encontrada para usuario: " + username + ". Se debe registrar.");
+        return false;
     }
 }
 

@@ -1,5 +1,5 @@
 server:
-  port: 8085 # El puerto que definiste en el API Gateway
+  port: 8085
 spring:
   application:
     name: student-service
@@ -7,40 +7,40 @@ spring:
   h2:
     console:
       enabled: true
-      path: /h2-console # Asegúrate de que esta ruta coincida con la de SecurityConfig
-  # --- Configuración de la Base de Datos (Ejemplo con H2 en memoria) ---
-  # Cambia esto por tu configuración de PostgreSQL o la base de datos que uses
+      path: /h2-console
+
   datasource:
     url: jdbc:h2:mem:studentdb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
-    password:
+    password: ""
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update # 'update' para desarrollo, 'validate' o 'none' para producción
+      ddl-auto: update
     show-sql: true
 
   rabbitmq:
+    # Cuando corras en local, usará 'localhost'.
+    # En Docker, la variable de entorno 'SPRING_RABBITMQ_HOST' lo sobreescribirá con 'rabbitmq'.
     host: localhost
     port: 5672
     username: guest
     password: guest
-  # --- Configuración de Seguridad como Resource Server ---
-  # Esto le dice a tu microservicio cómo validar los tokens JWT
+
   security:
     oauth2:
       resourceserver:
         jwt:
+          # Cuando corras en local, usará 'localhost'.
+          # En Docker, la variable de entorno 'SPRING_SECURITY_...' lo sobreescribirá con 'http://keycloak:8080/...'.
           issuer-uri: http://localhost:8080/realms/sistema
 
-# Configuración de logging para ver detalles de seguridad
 logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
 
-# En el application.yml del microservicio de estudiante
 keycloak:
-  client-id: desktop # El client ID que viste en el token ('azp')
+  client-id: desktop

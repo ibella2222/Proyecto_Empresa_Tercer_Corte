@@ -1,0 +1,20 @@
+# --- Paso 1: Usar una Imagen Base Oficial ---
+# Empezamos con una imagen base de OpenJDK 17, igual que los otros servicios.
+FROM openjdk:17-jdk-slim
+
+# --- Paso 2: Establecer un Directorio de Trabajo ---
+# Creamos y nos movemos a un directorio llamado /app dentro del contenedor.
+WORKDIR /app
+
+# --- Paso 3: Copiar el Archivo JAR ---
+# Copiamos el .jar compilado del API Gateway desde la carpeta 'target'
+# y lo renombramos a 'app.jar' para mantener la consistencia.
+COPY target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
+
+# --- Paso 4: Exponer el Puerto ---
+# Le decimos a Docker que este contenedor escuchará peticiones en el puerto 8081.
+EXPOSE 8081
+
+# --- Paso 5: Definir el Comando de Arranque ---
+# El comando para iniciar la aplicación del Gateway.
+ENTRYPOINT ["java", "-jar", "app.jar"]
