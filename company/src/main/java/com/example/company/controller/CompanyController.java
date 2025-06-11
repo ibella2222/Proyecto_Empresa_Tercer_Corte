@@ -21,7 +21,7 @@ public class CompanyController {
     private final CompanyRepository companyRepository; // Inyección directa ya estaba
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
 
-    // Constructor unificado para las dependencias
+    // Constructor jejeej unificado para las dependencias
     public CompanyController(CompanyService companyService, CompanyRepository companyRepository) {
         this.companyService = companyService;
         this.companyRepository = companyRepository;
