@@ -2,29 +2,31 @@ server:
   port: 8086
 
 spring:
-  # Es una buena práctica definir siempre el nombre de la aplicación
   application:
     name: coordinator-service
 
+  # --- INICIO DE LA CONFIGURACIÓN CORRECTA PARA POSTGRESQL ---
   datasource:
+    # URL, driver y credenciales para tu base de datos PostgreSQL
     url: jdbc:postgresql://localhost:5432/coordinationdb
     driver-class-name: org.postgresql.Driver
     username: postgres
-    password: 1234 # cámbialo según corresponda
+    password: 1234 # Asegúrate de que esta sea tu contraseña correcta
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    # ESTA ES LA LÍNEA MÁS IMPORTANTE A CORREGIR:
+    # El dialecto debe ser el de PostgreSQL.
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-  # --- SECCIÓN DE SEGURIDAD AÑADIDA ---
-  # Configura este microservicio como un "Resource Server" que valida JWTs.
+  # --- FIN DE LA CONFIGURACIÓN POSTGRESQL ---
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          # Debe ser la misma URL que usan el API Gateway y los otros servicios.
           issuer-uri: http://localhost:8080/realms/sistema
 
   rabbitmq:
