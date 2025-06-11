@@ -1,5 +1,7 @@
 package co.edu.unicauca.proyectocurso.access;
 import co.edu.unicauca.proyectocurso.domain.entities.Company;
+import co.edu.unicauca.proyectocurso.domain.entities.StudentProject;
+
 import java.util.List;
 
 public interface ICompanyRepository {
@@ -32,5 +34,5 @@ public interface ICompanyRepository {
     Company findByNIT(String nit);
 
 
-    boolean approveProject(String projectId);
+
 }

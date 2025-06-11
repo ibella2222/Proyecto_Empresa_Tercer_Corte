@@ -4,16 +4,8 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
-import co.edu.unicauca.proyectocurso.access.IProjectRepository;
-import co.edu.unicauca.proyectocurso.access.IStudentProjectRepository;
-import co.edu.unicauca.proyectocurso.access.IStudentRepository;
-import co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl;
-import co.edu.unicauca.proyectocurso.access.StudentProjectRepositoryImpl;
-import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
-import co.edu.unicauca.proyectocurso.domain.entities.Project;
-import co.edu.unicauca.proyectocurso.domain.entities.ProjectState;
-import co.edu.unicauca.proyectocurso.domain.entities.Student;
-import co.edu.unicauca.proyectocurso.domain.entities.StudentProject;
+import co.edu.unicauca.proyectocurso.access.*;
+import co.edu.unicauca.proyectocurso.domain.entities.*;
 import co.edu.unicauca.proyectocurso.domain.services.Observer;
 import co.edu.unicauca.proyectocurso.domain.services.ProjectService;
 import co.edu.unicauca.proyectocurso.domain.services.StudentProjectService;
@@ -34,38 +26,65 @@ public class GUISolicitudesEstudiantes extends javax.swing.JFrame implements Obs
     private IStudentProjectRepository studentProjectRepository = new StudentProjectRepositoryImpl() ;
     private StudentProjectService studentProjectService = new StudentProjectService(studentProjectRepository);
     DefaultTableModel model = new DefaultTableModel();
-    
+    // En GUISolicitudesEstudiantes.java
+
+
+    private ICoordinatorRepository coordinatorRepository = new CoordinatorRepositoryImpl();
+    private List<ApplicationDTO> listaDeSolicitudes; // <-- AHORA ES UNA LISTA DE DTOs
+
     /**
      * Creates new form GUISolicitudesEstudiantes
      */
     public GUISolicitudesEstudiantes() {
         initComponents();
-        
-        this.studentProjectService = studentProjectService;
-        
-         // Suscribirse como observador
+
         this.studentProjectService.addObserver(this);
 
-        String[] columnas = { "Nombre proyecto", "Descripción proyecto", "Programa estudiante" };
+        String[] columnas = { "Nombre Proyecto", "Descripción Proyecto", "Programa Estudiante" };
         model.setColumnIdentifiers(columnas);
         jTable1.setModel(model);
-        
-        cargarEstudianteProyecto();
+
+        cargarSolicitudesPendientes(); // Renombrado para mayor claridad
+    }
+    private ApplicationDTO obtenerSolicitudDeLaFila(int fila) {
+        if (fila >= 0 && fila < this.listaDeSolicitudes.size()) {
+            return this.listaDeSolicitudes.get(fila);
+        }
+        return null;
     }
     
     @Override
     public void update() {
-        cargarEstudianteProyecto();
+        cargarSolicitudesPendientes();
     }
-    
-    
-    private void cargarEstudianteProyecto(){
-       List<StudentProject> studentProjects = studentProjectService.getReceivedStudentProjects();
-       model.setRowCount(0);
-       for (StudentProject p : studentProjects) {
-            model.addRow(new Object[]{p.getProject().getName(), p.getProject().getDescription(), p.getStudent().getProgram()});
+
+
+    private void cargarSolicitudesPendientes() {
+        // Llama al repositorio para obtener los DTOs desde el backend
+        this.listaDeSolicitudes = coordinatorRepository.getPendingApplications();
+        model.setRowCount(0);
+
+        if (this.listaDeSolicitudes == null || this.listaDeSolicitudes.isEmpty()) {
+            // Manejar el caso en que no hay solicitudes
+            return;
+        }
+
+        // Usa los getters del DTO para llenar la tabla
+        for (ApplicationDTO dto : this.listaDeSolicitudes) {
+            model.addRow(new Object[]{
+                    dto.getProjectName(),
+                    dto.getProjectDescription(),
+                    dto.getStudentProgram()
+            });
         }
     }
+
+    /**
+     * Obtiene el objeto StudentProject completo correspondiente a una fila seleccionada en la tabla.
+     * @param fila El índice de la fila seleccionada.
+     * @return El objeto StudentProject, o null si la selección es inválida.
+     */
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -138,26 +157,39 @@ public class GUISolicitudesEstudiantes extends javax.swing.JFrame implements Obs
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
         int filaSeleccionada = jTable1.getSelectedRow();
-        if (filaSeleccionada >= 0) {
-            String nombreProyecto = (String) model.getValueAt(filaSeleccionada, 0);
+        if (filaSeleccionada < 0) {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione una solicitud para rechazar.");
+            return;
+        }
 
-            // Buscar el StudentProject en la lista de solicitudes pendientes
-            StudentProject studentProject = studentProjectService.getReceivedStudentProjects()
-                    .stream()
-                    .filter(sp -> sp.getProject().getName().equals(nombreProyecto))
-                    .findFirst()
-                    .orElse(null);
+        // --- CORRECCIÓN 1: Usar el método y el tipo de dato correctos ---
+        ApplicationDTO solicitud = obtenerSolicitudDeLaFila(filaSeleccionada);
 
-            if (studentProject != null) {
-                studentProjectService.rejectStudentProject(studentProject);
-                JOptionPane.showMessageDialog(this, "Solicitud rechazada");
+        if (solicitud == null) {
+            return; // El método obtenerSolicitudDeLaFila ya maneja el error
+        }
+
+        // --- CORRECCIÓN 2: El mensaje de confirmación ahora es para RECHAZAR ---
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Está seguro de que desea RECHAZAR la postulación del estudiante " + solicitud.getStudentFullName() + "?",
+                "Confirmar Rechazo",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // --- CORRECCIÓN 3: Llamar al método correcto del repositorio ---
+            boolean success = coordinatorRepository.rejectStudentApplication(
+                    solicitud.getStudentId(),
+                    solicitud.getProjectId()
+            );
+
+            if (success) {
+                // --- CORRECCIÓN 4: El mensaje de éxito es sobre el RECHAZO ---
+                JOptionPane.showMessageDialog(this, "Postulación RECHAZADA exitosamente.");
+                cargarSolicitudesPendientes(); // Recargar la tabla
             } else {
-                JOptionPane.showMessageDialog(this, "No se encontró la solicitud");
+                JOptionPane.showMessageDialog(this, "Ocurrió un error al rechazar la postulación.");
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una solicitud");
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -166,34 +198,36 @@ public class GUISolicitudesEstudiantes extends javax.swing.JFrame implements Obs
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
         int filaSeleccionada = jTable1.getSelectedRow();
-        if (filaSeleccionada >= 0) {
-            String nombreProyecto = (String) model.getValueAt(filaSeleccionada, 0);
+        if (filaSeleccionada < 0) {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione una solicitud para aprobar.");
+            return;
+        }
 
-            // Buscar el StudentProject en la lista de solicitudes pendientes
-            StudentProject studentProject = studentProjectService.getAllStudentProjects()
-                    .stream()
-                    .filter(sp -> sp.getProject().getName().equals(nombreProyecto))
-                    .findFirst()
-                    .orElse(null);
-            
-            if (studentProject != null) {
-                ArrayList<Student> students = studentRepository.findStudentsByProjectId(studentProject.getProjectId());
-                projectService.inExecuteValidation(studentProject, students);
-                     Project proyecto = projectService.getInExecutionProjects()
-                    .stream()
-                    .filter(p -> p.getName().equals(nombreProyecto))
-                    .findFirst()
-                    .orElse(null);
-                JOptionPane.showMessageDialog(this, "Solicitud aprobada");
+        // Usamos el método corregido para obtener el DTO
+        ApplicationDTO solicitud = obtenerSolicitudDeLaFila(filaSeleccionada);
+        if (solicitud == null) {
+            return; // No debería pasar si la fila es válida
+        }
 
-                
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Aprobar la postulación del estudiante " + solicitud.getStudentFullName() + "?",
+                "Confirmar Aprobación",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Llamamos al repositorio usando los IDs del DTO
+            boolean success = coordinatorRepository.approveStudentApplication(
+                    solicitud.getStudentId(),
+                    solicitud.getProjectId()
+            );
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Postulación APROBADA exitosamente.");
+                cargarSolicitudesPendientes(); // Recargar la tabla para que la solicitud desaparezca
             } else {
-                JOptionPane.showMessageDialog(this, "No se encontró la solicitud");
+                JOptionPane.showMessageDialog(this, "Ocurrió un error al aprobar la postulación.");
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una solicitud");
         }
 
     }//GEN-LAST:event_jButton4ActionPerformed

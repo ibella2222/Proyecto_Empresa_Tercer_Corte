@@ -1,7 +1,5 @@
 package com.example.coordination.presentation;
 
-
-
 import com.example.coordination.application.port.in.ProjectUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,52 +8,46 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/coordinators/projects")
+@RequestMapping("/coordinators/projects") // Ruta base para acciones sobre proyectos
 public class ProjectController {
 
     private final ProjectUseCase projectUseCase;
 
+    // Este constructor ahora solo necesita la dependencia que usa
     public ProjectController(ProjectUseCase projectUseCase) {
         this.projectUseCase = projectUseCase;
     }
 
-    // El endpoint para aprobar un proyecto
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasRole('coordinator')") // <-- Aseguramos el endpoint
+    @PreAuthorize("hasRole('coordinator')")
     public ResponseEntity<String> approveProject(@PathVariable UUID id) {
         try {
             projectUseCase.acceptProject(id);
             return ResponseEntity.ok("Proyecto aprobado correctamente.");
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().body("Error interno al aprobar el proyecto.");
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
-
-
     @PutMapping("/{id}/reject")
+    @PreAuthorize("hasRole('coordinator')")
     public ResponseEntity<String> rejectProject(@PathVariable UUID id) {
         try {
             projectUseCase.rejectProject(id);
             return ResponseEntity.ok("Proyecto rechazado correctamente.");
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().body("Error interno al rechazar el proyecto.");
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
     @PutMapping("/{id}/start")
+    @PreAuthorize("hasRole('coordinator')")
     public ResponseEntity<String> startExecution(@PathVariable UUID id) {
         try {
             projectUseCase.startExecution(id);
             return ResponseEntity.ok("Ejecución del proyecto iniciada.");
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().body("Error al iniciar ejecución del proyecto.");
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 }

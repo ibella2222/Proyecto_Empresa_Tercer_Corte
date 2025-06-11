@@ -1,9 +1,11 @@
 package co.edu.unicauca.proyectocurso.access;
 
 import co.edu.unicauca.proyectocurso.domain.entities.Student;
+import co.edu.unicauca.proyectocurso.domain.entities.StudentProject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +34,9 @@ public class StudentRepositoryImpl implements IStudentRepository {
     public StudentRepositoryImpl() {
         this.restTemplate = new RestTemplate();
     }
+
+
+
 
     /**
      * Guarda un nuevo estudiante (requiere username externo)

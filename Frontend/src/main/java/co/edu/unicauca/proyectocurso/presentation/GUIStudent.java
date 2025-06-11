@@ -4,7 +4,9 @@
  */
 package co.edu.unicauca.proyectocurso.presentation;
 
+import co.edu.unicauca.proyectocurso.access.IProjectRepository;
 import co.edu.unicauca.proyectocurso.access.IStudentRepository;
+import co.edu.unicauca.proyectocurso.access.ProjectRepositoryImpl;
 import co.edu.unicauca.proyectocurso.access.StudentRepositoryImpl;
 import co.edu.unicauca.proyectocurso.domain.entities.Project;
 import co.edu.unicauca.proyectocurso.domain.entities.Student;
@@ -29,10 +31,14 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     private ProjectService projectService;
     private String username;
     private Student currentStudent;
-    // Declara el nuevo repositorio como un atributo de la clase
+    private List<Project> listaDeProyectos;
+
+
+
     private final IStudentRepository studentRepository = new StudentRepositoryImpl();
-    
-       public GUIStudent() 
+    private final IProjectRepository projectRepository = new ProjectRepositoryImpl();
+
+    public GUIStudent()
        {
            initComponents(); 
            labelName.setText(username);
@@ -67,11 +73,11 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     public GUIStudent(Student student) {
         initComponents();
         this.currentStudent = student;
-        this.projectService = new ProjectService();
 
         // Configurar la GUI con la información del estudiante
         labelName.setText(currentStudent.getFirstName() + " " + currentStudent.getLastName());
 
+        // Configurar la tabla
         String[] columns = {"ID", "Fecha", "Empresa", "Nombre Proyecto", "Descripción"};
         tableModel.setColumnIdentifiers(columns);
         tableProjects.setModel(tableModel);
@@ -165,61 +171,42 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
             return;
         }
 
-        // Obtener el ID del proyecto de la fila seleccionada
-        String projectId = tableModel.getValueAt(selectedRow, 0).toString();
-        String projectName = tableModel.getValueAt(selectedRow, 3).toString();
+        Project proyectoSeleccionado = obtenerProyectoDeLaFila(selectedRow);
+        if (proyectoSeleccionado == null) return;
 
-        // Preguntar al usuario si está seguro
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Está seguro de que desea postularse al proyecto: " + projectName + "?",
+                "¿Está seguro de que desea postularse al proyecto: " + proyectoSeleccionado.getName() + "?",
                 "Confirmar Postulación",
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Llamar al método applyToProject del repositorio de estudiante
-            // Este método ya está configurado para enviar el token JWT.
-            boolean success = studentRepository.applyToProject(projectId);
+            // Este método ya llama a la API de forma segura
+            boolean success = studentRepository.applyToProject(proyectoSeleccionado.getId().toString());
 
             if (success) {
-                JOptionPane.showMessageDialog(this,
-                        "¡Se ha postulado exitosamente al proyecto!\nSu perfil será actualizado.",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                // Opcional: Actualizar la vista o deshabilitar el botón para evitar múltiples postulaciones
-                btnPostularse.setEnabled(false);
-
+                JOptionPane.showMessageDialog(this, "¡Se ha postulado exitosamente al proyecto!", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                btnPostularse.setEnabled(false); // Deshabilitar para evitar múltiples postulaciones
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "No se pudo realizar la postulación.\nEs posible que ya esté postulado a otro proyecto.",
-                        "Error de Postulación",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No se pudo realizar la postulación.\nEs posible que ya esté postulado a otro proyecto.", "Error de Postulación", JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_btnPostularseActionPerformed
 
     private void btnDetallesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetallesActionPerformed
-        // TODO add your handling code here:
         int filaSeleccionada = tableProjects.getSelectedRow();
+        if (filaSeleccionada < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un proyecto de la tabla para ver sus detalles.");
+            return;
+        }
 
-        if (filaSeleccionada >= 0) {
-            String nombreProyecto = (String) tableProjects.getValueAt(filaSeleccionada, 3); // Obtener nombre desde la tabla
+        // Obtiene el proyecto directamente de nuestra lista en memoria, sin buscar de nuevo.
+        Project proyecto = obtenerProyectoDeLaFila(filaSeleccionada);
 
-            // Buscar el proyecto en la lista de proyectos pendientes
-            Project proyecto = projectService.listProjects()
-                    .stream()
-                    .filter(p -> p.getName().equals(nombreProyecto))
-                    .findFirst()
-                    .orElse(null);
-
-            if (proyecto != null) {
-                GUIDetallesProyecto detalles = new GUIDetallesProyecto(proyecto); // Abrir la ventana con detalles
-                detalles.setVisible(true);
-            } else {
-                JOptionPane.showMessageDialog(this, "No se encontró el proyecto seleccionado.");
-            }
+        if (proyecto != null) {
+            GUIDetallesProyecto detalles = new GUIDetallesProyecto(proyecto);
+            detalles.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione un proyecto de la tabla.");
+            JOptionPane.showMessageDialog(this, "No se encontró el proyecto seleccionado.");
         }
     }//GEN-LAST:event_btnDetallesActionPerformed
 
@@ -274,24 +261,36 @@ public class GUIStudent extends javax.swing.JFrame implements Observer{
     private void cargarProyectos() {
         // Limpiar la tabla
         tableModel.setRowCount(0);
-        // CORRECCIÓN: Llamar al nuevo método para obtener solo proyectos aceptados
 
+        // Usa el repositorio para obtener los proyectos aceptados desde el backend
+        this.listaDeProyectos = projectRepository.findAcceptedProjects();
 
-        List<Project> proyectos = projectService.findAcceptedProjects(); // Llama al servicio para obtener los proyectos
+        if (this.listaDeProyectos == null || this.listaDeProyectos.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay proyectos disponibles para postularse en este momento.");
+            return;
+        }
 
-    for (Project p : proyectos) {
-        Object[] rowData = {
-            p.getId(),                         // ID del proyecto
-            p.getDate().toString(),            // Fecha del proyecto (convertida a String)
-            p.getCompany().getName(),          // Nombre de la empresa asociada
-            p.getName(),                       // Nombre del proyecto
-            p.getSummary()                     // Descripción/resumen
-        };
-        tableModel.addRow(rowData); // Agrega una fila por cada proyecto
+        // Llena la tabla con la lista obtenida
+        for (Project p : this.listaDeProyectos) {
+            Object[] rowData = {
+                    p.getId().toString(),
+                    p.getDate().toString(),
+                    (p.getCompany() != null) ? p.getCompany().getName() : "N/A", // Verificación de nulidad
+                    p.getName(),
+                    p.getSummary()
+            };
+            tableModel.addRow(rowData);
+        }
     }
-        
+    /**
+     * Método auxiliar para obtener el proyecto completo de la fila seleccionada.
+     */
+    private Project obtenerProyectoDeLaFila(int fila) {
+        if (fila >= 0 && fila < this.listaDeProyectos.size()) {
+            return this.listaDeProyectos.get(fila);
+        }
+        return null;
     }
-
 
     @Override
     public void update() {

@@ -28,7 +28,7 @@ import javax.swing.table.DefaultTableModel;
 public class GUICoordProyPendientes extends javax.swing.JFrame implements Observer {
     private ProjectService projectService = new ProjectService();
     DefaultTableModel model = new DefaultTableModel();
-    private final ICompanyRepository coordinatorRepository = new CompanyRepositoryImpl();
+    private final ICoordinatorRepository coordinatorRepository = new CoordinatorRepositoryImpl();
 
 
     /**
